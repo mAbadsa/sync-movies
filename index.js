@@ -13,7 +13,14 @@ const server = app.listen(PORT, () =>
 
 const io = socket(server);
 io.on('connection', (socketVariable) => {
-  console.log('made socket connection', socketVariable.id);
+  socketVariable.on('disconnecting', () => {
+    const roomId = [...socketVariable.rooms].find(
+      (item) => item !== socketVariable.id,
+    );
+    socketVariable.leave(roomId);
+    const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+    io.to(roomId).emit('roomId', { roomId, connectedUsers });
+  });
 
   socketVariable.on('roomId', (roomId) => {
     socketVariable.join(roomId);
@@ -37,7 +44,6 @@ io.on('connection', (socketVariable) => {
 
   // Handle chat event
   socketVariable.on('chat', (data) => {
-    // console.log(data);
     io.to(data.roomId).emit('chat', data.message);
   });
 
