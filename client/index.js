@@ -9,6 +9,7 @@ const output = document.getElementById('output');
 const feedback = document.getElementById('feedback');
 const roomFeedback = document.getElementById('room-feedback');
 const joinRoomButton = document.getElementById('join-room-button');
+const connectedPeople = document.getElementById('connected-people');
 
 let roomIdServer;
 
@@ -30,9 +31,10 @@ const connectFunction = (e) => {
     socket.emit('pause', roomIdServer),
   );
 
-  socket.on('roomId', (roomIdFromServer) => {
-    roomIdServer = roomIdFromServer;
-    roomFeedback.innerText = `You are connected to ${roomIdFromServer} Room`;
+  socket.on('roomId', (data) => {
+    roomIdServer = data.roomId;
+    roomFeedback.innerText = `You are connected to ${data.roomId} Room`;
+    connectedPeople.innerText = `Connected People ${data.connectedUsers}`;
     joinRoomButton.disabled = true;
   });
 

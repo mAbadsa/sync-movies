@@ -17,7 +17,8 @@ io.on('connection', (socketVariable) => {
 
   socketVariable.on('roomId', (roomId) => {
     socketVariable.join(roomId);
-    socketVariable.emit('roomId', roomId);
+    const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+    socketVariable.emit('roomId', { roomId, connectedUsers });
   });
 
   socketVariable.on('movieUrl', (data) => {
