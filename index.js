@@ -29,4 +29,15 @@ io.on('connection', (socketVariable) => {
   socketVariable.on('pause', () => {
     socketVariable.broadcast.emit('pause');
   });
+
+  // Handle chat event
+  socketVariable.on('chat', (data) => {
+    // console.log(data);
+    io.sockets.emit('chat', data);
+  });
+
+  // Handle typing event
+  socketVariable.on('typing', (data) => {
+    socketVariable.broadcast.emit('typing', data);
+  });
 });
