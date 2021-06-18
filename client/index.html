@@ -18,7 +18,7 @@
         <button type="submit">Add</button>
       </form>
       
-      <video  class="jw-video jw-reset" id='video-element' controls tabindex="-1" disableremoteplayback="" webkit-playsinline="" playsinline="" preload="metadata" width="500" height="200" src='https://s135.vidboo.com/6jmnxkecxmazsalrivfqb5nvjmx6tsgs67lqvghfgusxqe4bfmmzvipapyxa/v.mp4'></video>
+      <video  class="jw-video jw-reset" id='video-element' controls autoplay tabindex="-1" disableremoteplayback="" webkit-playsinline="" playsinline="" preload="metadata" width="500" height="200" src='https://s135.vidboo.com/6jmnxkecxmazsalrivfqb5nvjmx6tsgs67lqvghfgusxqe4bfmmzvipapyxa/v.mp4'></video>
     </div>
     <div id='chat-container'>
       <h2>Chat</h2>
@@ -26,9 +26,12 @@
           <div id="output"></div>
           <div id="feedback"></div>
       </div>
-      <input id="handle" type="text" placeholder="Handle" />
-      <input id="message" type="text" placeholder="Message" />
-      <button id="send">Send</button>
+      <form id='chat-form'>
+        <input id="handle" type="text" placeholder="Handle" />
+        <input id="message" type="text" placeholder="Message" />
+        <button id="send" type="submit">Send</button>
+      </form>
+
     </div>
   </div>
 

@@ -32,6 +32,8 @@ h2{
   height: 300px;
   overflow: auto;
   background: #f9f9f9;
+  display: flex;
+  flex-direction: column-reverse;
 }
 
 #output p{

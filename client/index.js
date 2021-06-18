@@ -4,6 +4,7 @@ const videoElement = document.getElementById('video-element');
 const message = document.getElementById('message');
 const handle = document.getElementById('handle');
 const btn = document.getElementById('send');
+const chatForm = document.getElementById('chat-form')
 const output = document.getElementById('output');
 const feedback = document.getElementById('feedback');
 
@@ -32,7 +33,8 @@ socket.on('movieUrl', (url) => {
 });
 
 // Emit events
-btn.addEventListener('click', () => {
+chatForm.addEventListener('submit', (e) => {
+  e.preventDefault()
   socket.emit('chat', {
     message: message.value,
     handle: handle.value,
