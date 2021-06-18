@@ -1,57 +1,86 @@
 /* eslint-disable no-undef */
-const socket = io.connect('/');
+
 const videoElement = document.getElementById('video-element');
 const message = document.getElementById('message');
 const handle = document.getElementById('handle');
-const btn = document.getElementById('send');
-const chatForm = document.getElementById('chat-form')
+const roomForm = document.getElementById('room');
+const chatForm = document.getElementById('chat-form');
 const output = document.getElementById('output');
 const feedback = document.getElementById('feedback');
+const roomFeedback = document.getElementById('room-feedback');
+const joinRoomButton = document.getElementById('join-room-button');
 
-videoElement.addEventListener('play', () => {
-  socket.emit('play', videoElement.currentTime);
-});
+let roomIdServer;
 
-videoElement.addEventListener('pause', () => socket.emit('pause'));
-
-socket.on('pause', () => videoElement.pause());
-socket.on('play', (time) => {
-  videoElement.currentTime = time;
-  videoElement.play();
-});
-
-const form = document.getElementById('form');
-
-form.addEventListener('submit', (e) => {
+const connectFunction = (e) => {
   e.preventDefault();
-  const url = e.target[0].value;
-  socket.emit('movieUrl', url);
-});
+  const socket = io.connect('/');
 
-socket.on('movieUrl', (url) => {
-  videoElement.src = url;
-});
+  const roomId = e.target[0].value;
+  socket.emit('roomId', roomId);
 
-// Emit events
-chatForm.addEventListener('submit', (e) => {
-  e.preventDefault()
-  socket.emit('chat', {
-    message: message.value,
-    handle: handle.value,
+  videoElement.addEventListener('play', () => {
+    socket.emit('play', {
+      currentTime: videoElement.currentTime,
+      roomId: roomIdServer,
+    });
   });
-  message.value = '';
-});
 
-message.addEventListener('keypress', () => {
-  socket.emit('typing', handle.value);
-});
+  videoElement.addEventListener('pause', () =>
+    socket.emit('pause', roomIdServer),
+  );
 
-// Listen for events
-socket.on('chat', (data) => {
-  feedback.innerHTML = '';
-  output.innerHTML += `<p><strong>${data.handle}: </strong>${data.message}</p>`;
-});
+  socket.on('roomId', (roomIdFromServer) => {
+    roomIdServer = roomIdFromServer;
+    roomFeedback.innerText = `You are connected to ${roomIdFromServer} Room`;
+    joinRoomButton.disabled = true;
+  });
 
-socket.on('typing', (data) => {
-  feedback.innerHTML = `<p><em>${data} is typing a message...</em></p>`;
-});
+  socket.on('pause', () => videoElement.pause());
+
+  socket.on('play', (time) => {
+    videoElement.currentTime = time;
+    videoElement.play();
+  });
+
+  const form = document.getElementById('form');
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const url = event.target[0].value;
+    socket.emit('movieUrl', { url, roomId: roomIdServer });
+  });
+
+  socket.on('movieUrl', (url) => {
+    videoElement.src = url;
+  });
+
+  // Emit events
+  chatForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    socket.emit('chat', {
+      roomId: roomIdServer,
+      message: {
+        message: message.value,
+        handle: handle.value,
+      },
+    });
+    message.value = '';
+  });
+
+  message.addEventListener('keypress', () => {
+    socket.emit('typing', { message: handle.value, roomId: roomIdServer });
+  });
+
+  // Listen for events
+  socket.on('chat', (data) => {
+    feedback.innerHTML = '';
+    output.innerHTML += `<p><strong>${data.handle}: </strong>${data.message}</p>`;
+  });
+
+  socket.on('typing', (data) => {
+    feedback.innerHTML = `<p><em>${data} is typing a message...</em></p>`;
+  });
+};
+
+roomForm.addEventListener('submit', connectFunction);

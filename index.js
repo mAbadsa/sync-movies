@@ -15,29 +15,33 @@ const io = socket(server);
 io.on('connection', (socketVariable) => {
   console.log('made socket connection', socketVariable.id);
 
-  socketVariable.on('movieUrl', (url) => {
-    console.log(url);
-    io.sockets.emit('movieUrl', url);
+  socketVariable.on('roomId', (roomId) => {
+    socketVariable.join(roomId);
+    socketVariable.emit('roomId', roomId);
+  });
+
+  socketVariable.on('movieUrl', (data) => {
+    io.to(data.roomId).emit('movieUrl', data.url);
   });
 
   // Handle typing event
   socketVariable.on('play', (data) => {
-    io.sockets.emit('play', data);
+    io.to(data.roomId).emit('play', data.currentTime);
   });
 
   // Handle typing event
-  socketVariable.on('pause', () => {
-    socketVariable.broadcast.emit('pause');
+  socketVariable.on('pause', (roomId) => {
+    io.to(roomId).emit('pause');
   });
 
   // Handle chat event
   socketVariable.on('chat', (data) => {
     // console.log(data);
-    io.sockets.emit('chat', data);
+    io.to(data.roomId).emit('chat', data.message);
   });
 
   // Handle typing event
   socketVariable.on('typing', (data) => {
-    socketVariable.broadcast.emit('typing', data);
+    io.to(data.roomId).emit('typing', data.message);
   });
 });
