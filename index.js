@@ -29,6 +29,7 @@ io.on('connection', (socketVariable) => {
   });
 
   socketVariable.on('movieUrl', (data) => {
+    console.log('check room', io.sockets.adapter.rooms?.get(data.roomId));
     io.to(data.roomId).emit('movieUrl', data.url);
   });
 

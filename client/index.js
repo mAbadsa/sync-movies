@@ -40,9 +40,9 @@ const connectFunction = (e) => {
 
   socket.on('pause', () => videoElement.pause());
 
-  socket.on('play', (time) => {
+  socket.on('play', async (time) => {
     videoElement.currentTime = time;
-    videoElement.play();
+    await videoElement.play();
   });
 
   const form = document.getElementById('form');
