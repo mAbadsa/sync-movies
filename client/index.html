@@ -11,6 +11,7 @@
 </head>
 <body>
   <div class='container'>
+
     <div id='movie-section'>
       <h1>Movies ... <span id='connected-people'></span> </h1>
       <form id='room'>
@@ -18,12 +19,32 @@
         <p id='room-feedback'></p>
         <button type="submit" id='join-room-button'>Join Room</button>
       </form>
-      <form id='form'>
-        <input type="text" name="" id="movieUrl">
-        <button type="submit">Add</button>
-      </form>
+      <button id='toggle-video-section'>Show MP4 Video</button>
+
+      <div id='mp4-video-section' class="hidden">
+        <form id='form'>
+          <input type="text" name="" id="movieUrl">
+          <button type="submit">Add</button>
+        </form>
+        
       
-      <video  class="jw-video jw-reset" id='video-element' controls tabindex="-1" disableremoteplayback="" webkit-playsinline="" playsinline="" preload="metadata" width="500" height="200" src='https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4'></video>
+
+        <video  class="jw-video jw-reset" id='video-element' controls tabindex="-1" disableremoteplayback="" webkit-playsinline="" playsinline="" preload="metadata" width="500" height="200" src='https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4'></video>
+      </div>
+
+
+      <div id='youtube-section'>
+        <form id='youtube-link-form' action="">
+          <input type="text" placeholder="Youtube url">
+          <button type="submit">Load</button>
+       </form>
+
+      <div id='player-content'>
+        <button id='play-button'></button>
+        <button id='pause-button'></button>
+        <div id='player'></div>
+      </div>
+      </div>
     </div>
     <div id='chat-container'>
       <h2>Chat</h2>
@@ -40,7 +61,7 @@
     </div>
   </div>
 
-  
   <script src="./index.js"></script>
+
 </body>
 </html>

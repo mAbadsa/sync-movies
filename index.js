@@ -35,6 +35,7 @@ io.on('connection', (socketVariable) => {
 
   // Handle typing event
   socketVariable.on('play', (data) => {
+    console.log('paly', data);
     io.to(data.roomId).emit('play', data.currentTime);
   });
 
