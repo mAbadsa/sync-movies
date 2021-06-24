@@ -20,11 +20,6 @@ const playButton = document.getElementById('play-button');
 const pauseButton = document.getElementById('pause-button');
 
 //
-// create Special Event
-const playEvent = new Event('playAction');
-const pauseEvent = new Event('pauseAction');
-
-//
 window.addEventListener('message', (e) => console.log('message', e));
 
 //
@@ -40,7 +35,7 @@ function onYouTubeIframeAPIReady() {
   player = new YT.Player('player', {
     videoId: 'o6V1by_972w',
     playerVars: {
-      controls: 1,
+      controls: 0,
       playsinline: 1,
       enablejsapi: 1,
     },
@@ -96,22 +91,6 @@ const connectFunction = (e) => {
     });
   });
 
-  //
-  player
-    .getIframe()
-    .addEventListener('playAction', () => console.log('play action'));
-  player
-    .getIframe()
-    .addEventListener('pauseAction', () => console.log('pause Action'));
-
-  player
-    .getIframe()
-    .addEventListener('click', () =>
-      player.getIframe().dispatchEvent(playEvent),
-    );
-
-  //
-
   socket.on('pause', () => player.pauseVideo());
 
   socket.on('play', (time) => {
@@ -119,6 +98,8 @@ const connectFunction = (e) => {
   });
 
   playButton.addEventListener('click', () => {
+    playButton.style.visibility = 'hidden';
+    pauseButton.style.visibility = 'visible';
     socket.emit('play', {
       currentTime: player.getCurrentTime(),
       roomId: roomIdServer,
@@ -126,6 +107,8 @@ const connectFunction = (e) => {
   });
 
   pauseButton.addEventListener('click', () => {
+    playButton.style.visibility = 'visible';
+    pauseButton.style.visibility = 'hidden';
     socket.emit('pause', roomIdServer);
   });
 
