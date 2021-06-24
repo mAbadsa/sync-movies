@@ -20,7 +20,7 @@ const playButton = document.getElementById('play-button');
 const pauseButton = document.getElementById('pause-button');
 
 //
-window.addEventListener('message', (e) => console.log('message', e));
+// window.addEventListener('message', (e) => console.log('message', e));
 
 //
 const tag = document.createElement('script');
@@ -38,6 +38,7 @@ function onYouTubeIframeAPIReady() {
       controls: 0,
       playsinline: 1,
       enablejsapi: 1,
+      autoplay: 0,
     },
     events: {
       onReady: onReadyPlayer,
@@ -62,13 +63,6 @@ function loadvideo(id) {
 
 const youtubeLinkForm = document.getElementById('youtube-link-form');
 
-youtubeLinkForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const id = getYoutubeId(e.target[0].value);
-  player.loadVideoById(id, 0, 'large');
-  socket.emit('movieUrl', { url: id, roomId });
-});
-
 function getYoutubeId(url) {
   // url= https://www.youtube.com/watch?v=AspEaxovpWA
   return url.split('=')[1];
@@ -83,6 +77,13 @@ const connectFunction = (e) => {
   e.preventDefault();
   const socket = io.connect('/');
 
+  youtubeLinkForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const id = getYoutubeId(e.target[0].value);
+    console.log(id);
+    player.loadVideoById(id);
+    socket.emit('movieUrl', { url: id, roomId: roomIdServer });
+  });
   const roomId = e.target[0].value;
   socket.emit('roomId', roomId);
 
@@ -107,24 +108,11 @@ const connectFunction = (e) => {
       roomId: roomIdServer,
     });
   });
-
+  // www.youtube.com/watch?v=Pz59wizOqLw
   pauseButton.addEventListener('click', () => {
     playButton.style.visibility = 'visible';
     pauseButton.style.visibility = 'hidden';
     socket.emit('pause', roomIdServer);
-  });
-
-  player.addEventListener('onStateChange', (event) => {
-    if (event.data === 1) {
-      player.getIframe().contentWindow.postMessage(
-        JSON.stringify({
-          event: 'command',
-          func: () => console.log('hello'),
-          args: 'message',
-        }),
-        'http://localhost:5000',
-      );
-    }
   });
 
   videoElement.addEventListener('pause', () =>
@@ -145,16 +133,9 @@ const connectFunction = (e) => {
   //   await videoElement.play();
   // });
 
-  const form = document.getElementById('form');
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const url = event.target[0].value;
-    socket.emit('movieUrl', { url, roomId: roomIdServer });
-  });
-
   socket.on('movieUrl', (url) => {
-    loadvideo(url);
+    console.log(url);
+    player.loadVideoById(url).playVideo();
   });
 
   // Emit events
