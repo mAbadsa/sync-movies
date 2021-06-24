@@ -56,15 +56,17 @@ function onReadyPlayer(e) {
   });
 }
 
-function loadvideo() {
-  player.loadVideoById('bHQqvYy5KYo', 5, 'large');
+function loadvideo(id) {
+  player.loadVideoById(id);
 }
 
 const youtubeLinkForm = document.getElementById('youtube-link-form');
+
 youtubeLinkForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const id = getYoutubeId(e.target[0].value);
   player.loadVideoById(id, 0, 'large');
+  socket.emit('movieUrl', { url: id, roomId });
 });
 
 function getYoutubeId(url) {
@@ -152,7 +154,7 @@ const connectFunction = (e) => {
   });
 
   socket.on('movieUrl', (url) => {
-    videoElement.src = url;
+    loadvideo(url);
   });
 
   // Emit events
