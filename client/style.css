@@ -101,8 +101,8 @@ button{
 }
 
 #player{
-  width: 600px;
-  height: 400px;
+  width: 80vw;
+  height: 80vh;
 }
 
 #player-content{
