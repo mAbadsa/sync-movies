@@ -20,6 +20,8 @@ const compressIcon = document.getElementById('compress-icon');
 // videoElement.removeAttribute('controls');
 //
 
+const notificationSound = new Audio('./pristine-609.mp3');
+
 const playButton = document.getElementById('play-button');
 const fullScreen = document.getElementById('full-screen');
 
@@ -146,6 +148,7 @@ const connectFunction = (e) => {
   socket.on('chat', (data) => {
     feedback.innerHTML = '';
     output.innerHTML += `<p><strong>${data.handle}: </strong>${data.message}</p>`;
+    notifyMe(data.message);
   });
 
   socket.on('typing', (data) => {
@@ -169,3 +172,30 @@ picker.on('emoji', (emoji) => {
 emojiButton.addEventListener('click', () =>
   picker.pickerVisible ? picker.hidePicker() : picker.showPicker(messageInput),
 );
+
+function notifyMe(message) {
+  // Let's check if the browser supports notifications
+  notificationSound.play();
+  if (!('Notification' in window)) {
+    console.log('This browser does not support desktop notification');
+  }
+
+  // Let's check whether notification permissions have already been granted
+  else if (Notification.permission === 'granted') {
+    // If it's okay let's create a notification
+    const notification = new Notification(message);
+  }
+
+  // Otherwise, we need to ask the user for permission
+  else if (Notification.permission !== 'denied') {
+    Notification.requestPermission().then((permission) => {
+      // If the user accepts, let's create a notification
+      if (permission === 'granted') {
+        const notification = new Notification(message);
+      }
+    });
+  }
+
+  // At last, if the user has denied notifications, and you
+  // want to be respectful there is no need to bother them any more.
+}
