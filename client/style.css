@@ -1,6 +1,7 @@
-*{
+* {
   padding: 0;
   margin: 0;
+  border:0;
 }
 
 .container{
@@ -10,10 +11,74 @@
   justify-content: flex-start;
 }
 
+.video-container{
+  width: 80%;
+  height: 100%;
+  display: flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#video-element{
+  width: 100%;
+  height: 98%;
+}
+
+.side-container{
+  width: 20%;
+  height: 100%;
+  border-left: 2px solid black;
+  padding: 0 1rem;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items:center;
+}
+
+.controls{
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+}
+
+.far,.fas {
+  font-size: 2rem;
+}
+
+
+
+
+
+
+#room p{
+  height: 1rem;
+}
+
+#room{
+  display: flex;
+  flex-direction: column;
+  font-size:0.75rem
+}
+
+.flex{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-col{
+  display: flex;
+  flex-direction: column;
+}
+
 body{
   font-family: 'Nunito';
   background-color: rgba(85, 85, 85, 0.391);
+  height: 100vh;
+  width: 100vw;
 }
+
 
 h2{
   font-size: 18px;
@@ -22,15 +87,13 @@ h2{
 }
 
 #mario-chat{
-  max-width: 600px;
-  margin: 30px auto;
+  max-width: 100%;
   border: 1px solid #ddd;
   box-shadow: 1px 3px 5px rgba(0,0,0,0.05);
   border-radius: 2px;
 }
 
 #chat-window{
-  height: 300px;
   overflow: auto;
   background: transparent;
   display: flex;
@@ -44,10 +107,12 @@ h2{
   color: #555;
 }
 
+#feedback{
+  height: 40px;
+}
+
 #feedback p{
-  color: #aaa;
-  padding: 14px 0px;
-  margin: 0 20px;
+  color: rgb(68, 64, 64);
 }
 
 #output strong{
@@ -76,15 +141,12 @@ input{
   font-size: 16px;
 }
 
-button{
-  background: gray;
-  width: fit-content;
-  color: #fff;
-  font-size: 18px;
-  border: 0;
-  padding: 12px 12px;
-  border-radius: 1rem;
+.control-button{
+  background:transparent;
+  border:none;
   cursor: pointer;
+  width: fit-content;
+  height: fit-content;
 }
 
 
@@ -94,4 +156,28 @@ button{
 #join-room-button:disabled{
   background-color: gray;
   cursor:none
+}
+
+.room-form{
+  padding: 1rem 0
+}
+
+#chat-container{
+  height: 55%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+
+}
+
+#movie-section{
+  height: 45%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.hidden{
+  display: none;
 }

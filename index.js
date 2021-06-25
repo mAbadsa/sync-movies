@@ -33,6 +33,11 @@ io.on('connection', (socketVariable) => {
     io.to(data.roomId).emit('movieUrl', data.url);
   });
 
+  //
+  socketVariable.on('seeked', ({ time, roomId }) => {
+    io.to(roomId).emit('seeked', { time });
+  });
+
   // Handle typing event
   socketVariable.on('play', (data) => {
     io.to(data.roomId).emit('play', data.currentTime);
