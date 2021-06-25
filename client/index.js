@@ -23,9 +23,12 @@ const compressIcon = document.getElementById('compress-icon');
 const notificationSound = new Audio('./pristine-609.mp3');
 const playSound = new Audio('./play.wav');
 const pauseSound = new Audio('./pause.wav');
+const joinedSound = new Audio('./joined.mp3');
+
 notificationSound.volume = 0.1;
 playSound.volume = 0.1;
 pauseSound.volume = 0.1;
+joinedSound.volume = 0.3;
 
 const playButton = document.getElementById('play-button');
 const fullScreen = document.getElementById('full-screen');
@@ -109,6 +112,10 @@ const connectFunction = (e) => {
 
   socket.on('roomId', (data) => {
     roomIdServer = data.roomId;
+    notifyMe(
+      `Joined Room : ${data.roomId} - Connected People ${data.connectedUsers} `,
+      joinedSound,
+    );
     roomFeedback.innerText = `connected : ${data.roomId} Room`;
     connectedPeople.innerText = `Connected People ${data.connectedUsers}`;
     joinRoomButton.disabled = true;
