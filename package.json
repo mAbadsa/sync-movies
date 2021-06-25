@@ -1,16 +1,17 @@
 {
   "name": "video-play",
   "version": "1.0.0",
-  "description": "",
+  "description": "testUrl = http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
   "main": "index.js",
   "scripts": {
     "dev": "nodemon index.js",
-    "start":"node index.js"
+    "start": "node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@joeattardi/emoji-button": "^4.6.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "socket.io": "^4.1.2"
@@ -24,5 +25,13 @@
     "eslint-plugin-jest": "^24.3.6",
     "eslint-plugin-prettier": "^3.4.0",
     "prettier": "^2.3.1"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hassanelnajjar/sync-movies.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hassanelnajjar/sync-movies/issues"
+  },
+  "homepage": "https://github.com/hassanelnajjar/sync-movies#readme"
 }

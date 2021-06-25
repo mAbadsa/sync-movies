@@ -154,3 +154,19 @@ const connectFunction = (e) => {
 };
 
 roomForm.addEventListener('submit', connectFunction);
+
+const messageInput = document.getElementById('message');
+const emojiButton = document.getElementById('emoji-button');
+
+const picker = new EmojiButton({
+  position: 'right',
+});
+
+picker.on('emoji', (emoji) => {
+  console.log(emoji);
+  messageInput.value += emoji;
+});
+
+emojiButton.addEventListener('click', () =>
+  picker.pickerVisible ? picker.hidePicker() : picker.showPicker(messageInput),
+);
