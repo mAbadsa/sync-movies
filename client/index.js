@@ -159,11 +159,10 @@ const messageInput = document.getElementById('message');
 const emojiButton = document.getElementById('emoji-button');
 
 const picker = new EmojiButton({
-  position: 'right',
+  position: 'left-end',
 });
 
 picker.on('emoji', (emoji) => {
-  console.log(emoji);
   messageInput.value += emoji;
 });
 
