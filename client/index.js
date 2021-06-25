@@ -23,6 +23,9 @@ const compressIcon = document.getElementById('compress-icon');
 const notificationSound = new Audio('./pristine-609.mp3');
 const playSound = new Audio('./play.wav');
 const pauseSound = new Audio('./pause.wav');
+notificationSound.volume = 0.1;
+playSound.volume = 0.1;
+pauseSound.volume = 0.1;
 
 const playButton = document.getElementById('play-button');
 const fullScreen = document.getElementById('full-screen');
@@ -134,6 +137,8 @@ const connectFunction = (e) => {
   // Emit events
   chatForm.addEventListener('submit', (event) => {
     event.preventDefault();
+    output.innerHTML += `<p><strong>${handle.value}: </strong>${message.value}</p>`;
+
     socket.emit('chat', {
       roomId: roomIdServer,
       message: {
@@ -152,7 +157,7 @@ const connectFunction = (e) => {
   socket.on('chat', (data) => {
     feedback.innerHTML = '';
     output.innerHTML += `<p><strong>${data.handle}: </strong>${data.message}</p>`;
-    notifyMe(data.message, notificationSound);
+    notifyMe(`${data.handle}:${data.message}`, notificationSound);
   });
 
   socket.on('typing', (data) => {

@@ -30,31 +30,31 @@ io.on('connection', (socketVariable) => {
 
   socketVariable.on('movieUrl', (data) => {
     console.log('check room', io.sockets.adapter.rooms?.get(data.roomId));
-    io.to(data.roomId).emit('movieUrl', data.url);
+    socketVariable.to(data.roomId).emit('movieUrl', data.url);
   });
 
   //
   socketVariable.on('seeked', ({ time, roomId }) => {
-    io.to(roomId).emit('seeked', { time });
+    socketVariable.to(roomId).emit('seeked', { time });
   });
 
   // Handle typing event
   socketVariable.on('play', (data) => {
-    io.to(data.roomId).emit('play', data.currentTime);
+    socketVariable.to(data.roomId).emit('play', data.currentTime);
   });
 
   // Handle typing event
   socketVariable.on('pause', (roomId) => {
-    io.to(roomId).emit('pause');
+    socketVariable.to(roomId).emit('pause');
   });
 
   // Handle chat event
   socketVariable.on('chat', (data) => {
-    io.to(data.roomId).emit('chat', data.message);
+    socketVariable.to(data.roomId).emit('chat', data.message);
   });
 
   // Handle typing event
   socketVariable.on('typing', (data) => {
-    io.to(data.roomId).emit('typing', data.message);
+    socketVariable.to(data.roomId).emit('typing', data.message);
   });
 });
