@@ -16,6 +16,19 @@ const playIcon = document.getElementById('play-icon');
 const pauseIcon = document.getElementById('pause-icon');
 const expandIcon = document.getElementById('expand-icon');
 const compressIcon = document.getElementById('compress-icon');
+const joinRoomDiv = document.getElementById('join-room-div');
+const roomManagementDiv = document.getElementById('room-management-div');
+
+const createRoom = document.getElementById('create-room');
+const joinRoom = document.getElementById('join-room');
+
+createRoom.addEventListener('click', () => {
+  roomManagementDiv.classList.add('hidden');
+});
+
+joinRoom.addEventListener('click', () => {
+  roomManagementDiv.classList.add('hidden');
+});
 
 // videoElement.removeAttribute('controls');
 //
@@ -52,12 +65,15 @@ fullScreen.addEventListener('click', () => {
 //
 let roomIdServer;
 
-const connectFunction = (e) => {
-  e.preventDefault();
+const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
-  const roomId = e.target[0].value;
-  socket.emit('roomId', roomId);
+  if (status === 'create-room') {
+    socket.emit('create-room');
+  } else if (status === 'join-room') {
+    e.preventDefault();
+    socket.emit('join-room', { roomId: e.target[0].value });
+  }
 
   // actions
 
@@ -116,7 +132,9 @@ const connectFunction = (e) => {
       `Joined Room : ${data.roomId} - Connected People ${data.connectedUsers} `,
       joinedSound,
     );
-    roomFeedback.innerText = `connected : ${data.roomId} Room`;
+    roomFeedback.value = `${data.roomId}`;
+    roomFeedback.select();
+    document.execCommand('copy');
     connectedPeople.innerText = `Connected People ${data.connectedUsers}`;
     joinRoomButton.disabled = true;
   });
@@ -130,11 +148,10 @@ const connectFunction = (e) => {
 
   socket.on('play', async (time) => {
     notifyMe('Some one start playing', playSound);
+    await videoElement.play();
     videoElement.currentTime = time;
     pauseIcon.classList.remove('hidden');
     playIcon.classList.add('hidden');
-
-    await videoElement.play();
   });
 
   socket.on('movieUrl', (url) => {
@@ -172,7 +189,20 @@ const connectFunction = (e) => {
   });
 };
 
-roomForm.addEventListener('submit', connectFunction);
+roomForm.addEventListener('submit', (e) => {
+  joinRoomDiv.classList.add('hidden');
+  connectFunction(e, { status: 'join-room' });
+});
+
+createRoom.addEventListener('click', () => {
+  roomManagementDiv.classList.add('hidden');
+  connectFunction(null, { status: 'create-room' });
+});
+
+joinRoom.addEventListener('click', () => {
+  roomManagementDiv.classList.add('hidden');
+  joinRoomDiv.classList.remove('hidden');
+});
 
 const messageInput = document.getElementById('message');
 const emojiButton = document.getElementById('emoji-button');
@@ -217,6 +247,5 @@ function notifyMe(message, notificationSoundRef) {
 }
 
 function hideNotification(message, notificationSoundRef) {
-  console.log(document.hasFocus());
   return document.hasFocus() || notifyMe(message, notificationSoundRef);
 }

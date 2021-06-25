@@ -42,12 +42,16 @@
         </div>
         <input type="range" id="seek-bar" value="0">
         <p>Time : <span id='video-time'>0</span></p>
+        <div class="flex" id='room-management-div'>
+          <button id='create-room' class="control-button"><i class="fas fa-plus-circle"></i></button>
+          <button id='join-room' class="control-button"><i class="fas fa-sign-in-alt"></i></button>
+        </div>
         <form id='room'>
-          <div class="flex room-form">
+          <div id='join-room-div' class="flex room-form hidden">
             <input type="text" placeholder="Room Id" required>
             <button type="submit" id='join-room-button' class="control-button"><i class="fas fa-sign-in-alt"></i></button>
           </div>
-          <p id='room-feedback'></p>
+          <label for="">RoomId:<input id='room-feedback' type="text"></label> 
         </form>
         <form id='form' class='flex'>
           <input type="text" name="" id="movieUrl" placeholder="MP4 Url" required>

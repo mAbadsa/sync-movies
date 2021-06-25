@@ -22,14 +22,26 @@ io.on('connection', (socketVariable) => {
     io.to(roomId).emit('roomId', { roomId, connectedUsers });
   });
 
-  socketVariable.on('roomId', (roomId) => {
+  socketVariable.on('join-room', ({ roomId }) => {
     socketVariable.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    io.to(roomId).emit('roomId', { roomId, connectedUsers });
+    io.to(roomId).emit('roomId', {
+      roomId,
+      connectedUsers,
+    });
+  });
+
+  socketVariable.on('create-room', () => {
+    const roomId = `${socketVariable.id}+${Math.random().toFixed(3)}`;
+    socketVariable.join(roomId);
+    const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+    io.to(roomId).emit('roomId', {
+      roomId,
+      connectedUsers,
+    });
   });
 
   socketVariable.on('movieUrl', (data) => {
-    console.log('check room', io.sockets.adapter.rooms?.get(data.roomId));
     socketVariable.to(data.roomId).emit('movieUrl', data.url);
   });
 

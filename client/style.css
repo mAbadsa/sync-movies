@@ -59,7 +59,7 @@
 
 .flex{
   display: flex;
-  justify-content: space-between;
+  justify-content: space-around;
   align-items: center;
 }
 
@@ -183,6 +183,29 @@ input{
 
 .hidden{
   display: none;
+}
+
+#create-room,#join-room{
+  position: relative;
+}
+
+#create-room:hover::after{
+  content:'Create Room';
+  position: absolute;
+  width: fit-content;
+  background:#fff;
+  border-radius: 3px;
+  padding: 0.2rem;
+}
+
+#join-room:hover::before{
+  padding: 0.2rem;
+  content:'Join Room';
+  position: absolute;
+  width: fit-content;
+  background:#fff;
+  border-radius: 3px;
+  right:2rem
 }
 
 
