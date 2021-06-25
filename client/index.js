@@ -66,12 +66,6 @@ const connectFunction = (e) => {
     return videoElement.pause();
   });
 
-  // press pause
-  // pauseButton.addEventListener('click', () => {
-  //   socket.emit('pause', roomIdServer);
-  //   return videoElement.pause();
-  // });
-
   // Event listener for the seek bar
   seekBar.addEventListener('change', () => {
     // Calculate the new time
