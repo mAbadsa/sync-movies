@@ -157,7 +157,7 @@ const connectFunction = (e) => {
   socket.on('chat', (data) => {
     feedback.innerHTML = '';
     output.innerHTML += `<p><strong>${data.handle}: </strong>${data.message}</p>`;
-    notifyMe(`${data.handle}:${data.message}`, notificationSound);
+    hideNotification(`${data.handle}:${data.message}`, notificationSound);
   });
 
   socket.on('typing', (data) => {
@@ -207,4 +207,9 @@ function notifyMe(message, notificationSoundRef) {
 
   // At last, if the user has denied notifications, and you
   // want to be respectful there is no need to bother them any more.
+}
+
+function hideNotification(message, notificationSoundRef) {
+  console.log(document.hasFocus());
+  return document.hasFocus() || notifyMe(message, notificationSoundRef);
 }
