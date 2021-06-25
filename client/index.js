@@ -21,6 +21,8 @@ const compressIcon = document.getElementById('compress-icon');
 //
 
 const notificationSound = new Audio('./pristine-609.mp3');
+const playSound = new Audio('./play.wav');
+const pauseSound = new Audio('./pause.wav');
 
 const playButton = document.getElementById('play-button');
 const fullScreen = document.getElementById('full-screen');
@@ -110,12 +112,14 @@ const connectFunction = (e) => {
   });
 
   socket.on('pause', () => {
+    notifyMe('Some one Paused', pauseSound);
     playIcon.classList.remove('hidden');
     pauseIcon.classList.add('hidden');
     return videoElement.pause();
   });
 
   socket.on('play', async (time) => {
+    notifyMe('Some one start playing', playSound);
     videoElement.currentTime = time;
     pauseIcon.classList.remove('hidden');
     playIcon.classList.add('hidden');
@@ -148,7 +152,7 @@ const connectFunction = (e) => {
   socket.on('chat', (data) => {
     feedback.innerHTML = '';
     output.innerHTML += `<p><strong>${data.handle}: </strong>${data.message}</p>`;
-    notifyMe(data.message);
+    notifyMe(data.message, notificationSound);
   });
 
   socket.on('typing', (data) => {
@@ -173,9 +177,9 @@ emojiButton.addEventListener('click', () =>
   picker.pickerVisible ? picker.hidePicker() : picker.showPicker(messageInput),
 );
 
-function notifyMe(message) {
+function notifyMe(message, notificationSoundRef) {
   // Let's check if the browser supports notifications
-  notificationSound.play();
+  notificationSoundRef.play();
   if (!('Notification' in window)) {
     console.log('This browser does not support desktop notification');
   }
