@@ -1,3 +1,5 @@
+/* eslint-disable no-shadow */
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-undef */
 
 const videoElement = document.getElementById('video-element');
@@ -18,7 +20,7 @@ const expandIcon = document.getElementById('expand-icon');
 const compressIcon = document.getElementById('compress-icon');
 const joinRoomDiv = document.getElementById('join-room-div');
 const roomManagementDiv = document.getElementById('room-management-div');
-
+const signal = document.getElementById('signal');
 const createRoom = document.getElementById('create-room');
 const joinRoom = document.getElementById('join-room');
 
@@ -63,16 +65,29 @@ fullScreen.addEventListener('click', () => {
 });
 
 //
+
+videoElement.addEventListener('waiting', () => console.log('waiting'));
+videoElement.addEventListener('suspend', () => console.log('suspend'));
+videoElement.addEventListener('load', () => console.log('load event'));
+videoElement.addEventListener('loadeddata', () => console.log('loadeddata'));
+videoElement.addEventListener('playing', () => console.log('playing'));
+
+//
 let roomIdServer;
+const loadedDataUsers = {};
+let connectedUserCount = 0;
 
 const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
   if (status === 'create-room') {
-    socket.emit('create-room');
+    socket.emit('create-room', { loadedData: videoElement.readyState >= 2 });
   } else if (status === 'join-room') {
     e.preventDefault();
-    socket.emit('join-room', { roomId: e.target[0].value });
+    socket.emit('join-room', {
+      roomId: e.target[0].value,
+      loadedData: videoElement.readyState >= 2,
+    });
   }
 
   // actions
@@ -112,6 +127,27 @@ const connectFunction = (e, { status }) => {
       .substr(11, 8);
   });
 
+  videoElement.addEventListener('loadeddata', () => {
+    socket.emit('loadeddata', {
+      roomId: roomIdServer,
+      loadedData: videoElement.readyState >= 2,
+    });
+  });
+
+  socket.on('loadeddata', ({ loadDataUsers }) => {
+    colorizeSignal(loadDataUsers);
+  });
+
+  videoElement.addEventListener('waiting', () => {
+    videoElement.addEventListener(
+      'playing',
+      () => console.log('playing once'),
+      {
+        once: true,
+      },
+    );
+  });
+
   // add movie url
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -134,9 +170,12 @@ const connectFunction = (e, { status }) => {
     );
     roomFeedback.value = `${data.roomId}`;
     roomFeedback.select();
+    connectedUserCount = data.connectedUsers;
     document.execCommand('copy');
     connectedPeople.innerText = `Connected People ${data.connectedUsers}`;
     joinRoomButton.disabled = true;
+    loadedDataUsers[data.id] = data.loadedData;
+    colorizeSignal(data.loadDataUsers);
   });
 
   socket.on('pause', () => {
@@ -248,4 +287,12 @@ function notifyMe(message, notificationSoundRef) {
 
 function hideNotification(message, notificationSoundRef) {
   return document.hasFocus() || notifyMe(message, notificationSoundRef);
+}
+
+function colorizeSignal(loadedDataUsers) {
+  if (loadedDataUsers === connectedUserCount) {
+    signal.classList.add('green');
+  } else {
+    signal.classList.remove('green');
+  }
 }

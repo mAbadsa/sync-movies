@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-console */
 require('dotenv').config();
 const socket = require('socket.io');
@@ -10,7 +11,6 @@ const app = require('./app');
 const server = app.listen(PORT, () =>
   console.log(`server is connected @ http://localhost:${PORT}`),
 );
-
 const io = socket(server);
 io.on('connection', (socketVariable) => {
   socketVariable.on('disconnecting', () => {
@@ -22,26 +22,58 @@ io.on('connection', (socketVariable) => {
     io.to(roomId).emit('roomId', { roomId, connectedUsers });
   });
 
-  socketVariable.on('join-room', ({ roomId }) => {
+  socketVariable.on('join-room', ({ roomId, loadedData }) => {
     socketVariable.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+    socketVariable.loadedData = loadedData;
+    const loadDataUsers = [...io.sockets.sockets].filter(
+      (item) => item[1].loadedData,
+    ).length;
     io.to(roomId).emit('roomId', {
       roomId,
       connectedUsers,
+      loadedData,
+      id: socketVariable.id,
+      loadDataUsers,
     });
   });
 
-  socketVariable.on('create-room', () => {
+  socketVariable.on('create-room', ({ loadedData }) => {
     const roomId = `${socketVariable.id}+${Math.random().toFixed(3)}`;
     socketVariable.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+    socketVariable.loadedData = loadedData;
+    const loadDataUsers = [...io.sockets.sockets].filter(
+      (item) => item[1].loadedData,
+    ).length;
     io.to(roomId).emit('roomId', {
       roomId,
       connectedUsers,
+      loadedData,
+      id: socketVariable.id,
+      loadDataUsers,
+    });
+  });
+
+  socketVariable.on('loadeddata', ({ roomId, loadedData }) => {
+    socketVariable.loadedData = loadedData;
+    const loadDataUsers = [...io.sockets.sockets].filter(
+      (item) => item[1].loadedData,
+    ).length;
+
+    console.log('loadDataUsers', loadDataUsers);
+
+    io.to(roomId).emit('loadeddata', {
+      id: socketVariable.id,
+      loadedData,
+      loadDataUsers,
     });
   });
 
   socketVariable.on('movieUrl', (data) => {
+    io.sockets.sockets.forEach((socketItem) => {
+      socketItem.loadedData = false;
+    });
     socketVariable.to(data.roomId).emit('movieUrl', data.url);
   });
 
