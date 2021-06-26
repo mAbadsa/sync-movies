@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Async Movies</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" integrity="sha512-iBBXm8fW90+nuLcSKlbmrPcLa0OT92xO1BIsZ+ywDWZCvqsWgccV3gFoRBv0z+8dLJgyAHIhR35VZc2oM/gI1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <link rel="icon" type="image/png" href="./live.png" />
 
 
   <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@2.2.4/dist/index.min.js"></script>
@@ -16,6 +17,13 @@
 <body>
   <div class='container'>
     <div class="video-container">
+      <form class="flex nickname" id='nickname-form'>
+        <input type="text" placeholder="nickname" required>
+        <button class='control-button' type='submit'>Set Nick Name</button>
+      </form>
+      <div class="connected-people" id='connected-people-list'>
+
+      </div>
       <video  id='video-element' disablePictureInPicture src='https://www.learningcontainer.com/wp-content/uploads/2020/05/sample-mp4-file.mp4'></video>
     </div>
 
@@ -64,7 +72,6 @@
             <div id="output"></div>
         </div>
         <form id='chat-form' class='flex-col'>
-          <input id="handle" type="text" placeholder="User Name" required/>
           <div class='flex'>
             <input id="message" type="text" placeholder="Message" required />
             <button id='emoji-button' type="button" class="control-button"><i class="far fa-grin-hearts"></i></button>

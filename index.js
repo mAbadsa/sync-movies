@@ -11,94 +11,116 @@ const app = require('./app');
 const server = app.listen(PORT, () =>
   console.log(`server is connected @ http://localhost:${PORT}`),
 );
+
 const io = socket(server);
-io.on('connection', (socketVariable) => {
-  socketVariable.on('disconnecting', () => {
-    const roomId = [...socketVariable.rooms].find(
-      (item) => item !== socketVariable.id,
-    );
-    socketVariable.leave(roomId);
+
+io.on('connection', (req) => {
+  req.on('disconnecting', () => {
+    const roomId = [...req.rooms].find((item) => item !== req.id);
+    req.leave(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
     io.to(roomId).emit('roomId', { roomId, connectedUsers });
   });
 
-  socketVariable.on('join-room', ({ roomId, loadedData }) => {
-    socketVariable.join(roomId);
+  req.on('join-room', ({ roomId, loadedData, nickname }) => {
+    req.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    socketVariable.loadedData = loadedData;
+    req.loadedData = loadedData;
+    req.nickname = nickname;
     const loadDataUsers = [...io.sockets.sockets].filter(
-      (item) => item[1].loadedData,
+      (item) =>
+        io.sockets.adapter.rooms.get(roomId).has(item[0]) && item[1].loadedData,
     ).length;
     io.to(roomId).emit('roomId', {
       roomId,
       connectedUsers,
       loadedData,
-      id: socketVariable.id,
+      id: req.id,
       loadDataUsers,
     });
   });
 
-  socketVariable.on('create-room', ({ loadedData }) => {
-    const roomId = `${socketVariable.id}+${Math.random().toFixed(3)}`;
-    socketVariable.join(roomId);
+  req.on('create-room', ({ loadedData, nickname }) => {
+    const roomId = `${req.id}+${Math.random().toFixed(3)}`;
+    req.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    socketVariable.loadedData = loadedData;
+    req.loadedData = loadedData;
+    req.nickname = nickname;
     const loadDataUsers = [...io.sockets.sockets].filter(
-      (item) => item[1].loadedData,
+      (item) =>
+        io.sockets.adapter.rooms.get(roomId).has(item[0]) && item[1].loadedData,
     ).length;
     io.to(roomId).emit('roomId', {
       roomId,
       connectedUsers,
       loadedData,
-      id: socketVariable.id,
+      id: req.id,
       loadDataUsers,
     });
   });
 
-  socketVariable.on('loadeddata', ({ roomId, loadedData }) => {
-    socketVariable.loadedData = loadedData;
+  req.on('loadeddata', ({ roomId, loadedData }) => {
+    req.loadedData = loadedData;
     const loadDataUsers = [...io.sockets.sockets].filter(
-      (item) => item[1].loadedData,
+      (item) =>
+        io.sockets.adapter.rooms.get(roomId).has(item[0]) && item[1].loadedData,
     ).length;
-
-    console.log('loadDataUsers', loadDataUsers);
 
     io.to(roomId).emit('loadeddata', {
-      id: socketVariable.id,
+      id: req.id,
       loadedData,
       loadDataUsers,
     });
   });
 
-  socketVariable.on('movieUrl', (data) => {
+  req.on('timeUpdated', ({ roomId, currentTime }) => {
+    req.currentTime = currentTime;
+    console.log(req.nickname, req.currentTime);
+    const usersNickNames = [...io.sockets.sockets]
+      .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
+      .map((item) => ({
+        nickname: item[1].nickname,
+        currentTime: item[1].currentTime,
+      }));
+    io.to(roomId).emit('timeUpdated', {
+      id: req.id,
+      currentTime,
+      usersNickNames,
+    });
+  });
+
+  req.on('movieUrl', (data) => {
     io.sockets.sockets.forEach((socketItem) => {
       socketItem.loadedData = false;
     });
-    socketVariable.to(data.roomId).emit('movieUrl', data.url);
+    req.to(data.roomId).emit('movieUrl', data.url);
   });
 
   //
-  socketVariable.on('seeked', ({ time, roomId }) => {
-    socketVariable.to(roomId).emit('seeked', { time });
+  req.on('seeked', ({ time, roomId }) => {
+    req.to(roomId).emit('seeked', { time });
   });
 
   // Handle typing event
-  socketVariable.on('play', (data) => {
-    socketVariable.to(data.roomId).emit('play', data.currentTime);
+  req.on('play', (data) => {
+    req.to(data.roomId).emit('play', {
+      time: data.currentTime,
+      nickname: req.nickname,
+    });
   });
 
   // Handle typing event
-  socketVariable.on('pause', (roomId) => {
-    socketVariable.to(roomId).emit('pause');
+  req.on('pause', (roomId) => {
+    req.to(roomId).emit('pause', { nickname: req.nickname });
   });
 
   // Handle chat event
-  socketVariable.on('chat', (data) => {
-    socketVariable.to(data.roomId).emit('chat', data.message);
+  req.on('chat', (data) => {
+    req.to(data.roomId).emit('chat', data.message);
   });
 
   // Handle typing event
-  socketVariable.on('typing', (data) => {
-    socketVariable.to(data.roomId).emit('typing', data.message);
+  req.on('typing', (data) => {
+    req.to(data.roomId).emit('typing', data.message);
   });
 });

@@ -4,7 +4,6 @@
 
 const videoElement = document.getElementById('video-element');
 const message = document.getElementById('message');
-const handle = document.getElementById('handle');
 const roomForm = document.getElementById('room');
 const chatForm = document.getElementById('chat-form');
 const output = document.getElementById('output');
@@ -23,12 +22,30 @@ const roomManagementDiv = document.getElementById('room-management-div');
 const signal = document.getElementById('signal');
 const createRoom = document.getElementById('create-room');
 const joinRoom = document.getElementById('join-room');
+const globalNickname = { nickname: 'random user' };
+const nicknameForm = document.getElementById('nickname-form');
+
+const connectedPeopleList = document.getElementById('connected-people-list');
+
+nicknameForm.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const nickname = e.target[0].value;
+  globalNickname.nickname = nickname;
+  document.title += ` - ${nickname}`;
+  nicknameForm.classList.add('hidden');
+});
 
 createRoom.addEventListener('click', () => {
+  if (globalNickname.nickname === 'random user') {
+    return alert('please add a nickname :)');
+  }
   roomManagementDiv.classList.add('hidden');
 });
 
 joinRoom.addEventListener('click', () => {
+  if (globalNickname.nickname === 'random user') {
+    return alert('please add a nickname :)');
+  }
   roomManagementDiv.classList.add('hidden');
 });
 
@@ -66,12 +83,6 @@ fullScreen.addEventListener('click', () => {
 
 //
 
-videoElement.addEventListener('waiting', () => console.log('waiting'));
-videoElement.addEventListener('suspend', () => console.log('suspend'));
-videoElement.addEventListener('load', () => console.log('load event'));
-videoElement.addEventListener('loadeddata', () => console.log('loadeddata'));
-videoElement.addEventListener('playing', () => console.log('playing'));
-
 //
 let roomIdServer;
 const loadedDataUsers = {};
@@ -81,12 +92,16 @@ const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
   if (status === 'create-room') {
-    socket.emit('create-room', { loadedData: videoElement.readyState >= 2 });
+    socket.emit('create-room', {
+      loadedData: videoElement.readyState >= 2,
+      nickname: globalNickname.nickname,
+    });
   } else if (status === 'join-room') {
     e.preventDefault();
     socket.emit('join-room', {
       roomId: e.target[0].value,
       loadedData: videoElement.readyState >= 2,
+      nickname: globalNickname.nickname,
     });
   }
 
@@ -120,11 +135,23 @@ const connectFunction = (e, { status }) => {
   videoElement.addEventListener('timeupdate', () => {
     // Calculate the slider value
     const value = (100 / videoElement.duration) * videoElement.currentTime;
+    // send the current Time to every user at each minute.
+    if (+videoElement.currentTime.toFixed(0) % 5 === 0) {
+      socket.emit('timeUpdated', {
+        roomId: roomIdServer,
+        currentTime: videoElement.currentTime,
+      });
+    }
+
     // Update the slider value
     seekBar.value = value;
     videoTime.innerText = new Date(videoElement.currentTime * 1000)
       .toISOString()
       .substr(11, 8);
+  });
+
+  socket.on('timeUpdated', ({ usersNickNames }) => {
+    createConnectedPeopleList(usersNickNames, connectedPeopleList);
   });
 
   videoElement.addEventListener('loadeddata', () => {
@@ -138,16 +165,6 @@ const connectFunction = (e, { status }) => {
     colorizeSignal(loadDataUsers);
   });
 
-  videoElement.addEventListener('waiting', () => {
-    videoElement.addEventListener(
-      'playing',
-      () => console.log('playing once'),
-      {
-        once: true,
-      },
-    );
-  });
-
   // add movie url
   form.addEventListener('submit', (event) => {
     event.preventDefault();
@@ -158,7 +175,8 @@ const connectFunction = (e, { status }) => {
 
   // listeners :)
 
-  socket.on('seeked', ({ time }) => {
+  // need fix
+  socket.on('seeked', async ({ time }) => {
     videoElement.currentTime = time;
   });
 
@@ -178,15 +196,15 @@ const connectFunction = (e, { status }) => {
     colorizeSignal(data.loadDataUsers);
   });
 
-  socket.on('pause', () => {
-    notifyMe('Some one Paused', pauseSound);
+  socket.on('pause', ({ nickname }) => {
+    notifyMe(`${nickname} Paused`, pauseSound);
     playIcon.classList.remove('hidden');
     pauseIcon.classList.add('hidden');
     return videoElement.pause();
   });
 
-  socket.on('play', async (time) => {
-    notifyMe('Some one start playing', playSound);
+  socket.on('play', async ({ time, nickname }) => {
+    notifyMe(`${nickname} start playing`, playSound);
     await videoElement.play();
     videoElement.currentTime = time;
     pauseIcon.classList.remove('hidden');
@@ -200,20 +218,23 @@ const connectFunction = (e, { status }) => {
   // Emit events
   chatForm.addEventListener('submit', (event) => {
     event.preventDefault();
-    output.innerHTML += `<p><strong>${handle.value}: </strong>${message.value}</p>`;
+    output.innerHTML += `<p><strong>${globalNickname.nickname}: </strong>${message.value}</p>`;
 
     socket.emit('chat', {
       roomId: roomIdServer,
       message: {
         message: message.value,
-        handle: handle.value,
+        handle: globalNickname.nickname,
       },
     });
     message.value = '';
   });
 
   message.addEventListener('keypress', () => {
-    socket.emit('typing', { message: handle.value, roomId: roomIdServer });
+    socket.emit('typing', {
+      message: globalNickname.nickname,
+      roomId: roomIdServer,
+    });
   });
 
   // Listen for events
@@ -234,13 +255,19 @@ roomForm.addEventListener('submit', (e) => {
 });
 
 createRoom.addEventListener('click', () => {
+  if (globalNickname.nickname === 'random user') {
+    return alert('please add a nickname :)');
+  }
   roomManagementDiv.classList.add('hidden');
-  connectFunction(null, { status: 'create-room' });
+  return connectFunction(null, { status: 'create-room' });
 });
 
 joinRoom.addEventListener('click', () => {
+  if (globalNickname.nickname === 'random user') {
+    return alert('please add a nickname :)');
+  }
   roomManagementDiv.classList.add('hidden');
-  joinRoomDiv.classList.remove('hidden');
+  return joinRoomDiv.classList.remove('hidden');
 });
 
 const messageInput = document.getElementById('message');
@@ -295,4 +322,21 @@ function colorizeSignal(loadedDataUsers) {
   } else {
     signal.classList.remove('green');
   }
+}
+
+function createConnectedPeopleList(peopleData, parent) {
+  [...parent.children].forEach((item) => item.remove());
+  const ul = document.createElement('ul');
+  const list = peopleData.map((user) => {
+    const li = document.createElement('li');
+    const nameSpan = document.createElement('span');
+    nameSpan.innerText = user.nickname;
+    const timeSpan = document.createElement('span');
+    const time = user.currentTime || 0;
+    timeSpan.innerText = new Date(time * 1000).toISOString().substr(11, 8);
+    li.append(nameSpan, timeSpan);
+    return li;
+  });
+  ul.append(...list);
+  parent.append(ul);
 }
