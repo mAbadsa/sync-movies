@@ -8,8 +8,9 @@ function connectPeerToPeer({ socket, data }) {
   if (peerObject) return;
   // Peer Constructor
   const myPeer = new Peer(undefined, {
-    host: '/',
-    port: '9000',
+    host: 'peerjs-server.herokuapp.com',
+    secure: true,
+    port: 443,
   });
 
   // Peer Open Event
