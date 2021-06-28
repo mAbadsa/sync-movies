@@ -1,7 +1,11 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable no-shadow */
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-undef */
 
+// //
+// navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+//
 const videoElement = document.getElementById('video-element');
 const message = document.getElementById('message');
 const roomForm = document.getElementById('room');
@@ -89,30 +93,15 @@ fullScreen.addEventListener('click', () => {
 let roomIdServer;
 const loadedDataUsers = {};
 let connectedUserCount = 0;
-
+const peers = {};
 const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
-  const myPeer = new Peer(undefined, {
-    host: 'peerjs-server.herokuapp.com',
-    secure: true,
-    port: 443,
-  });
-
-  callBtn.addEventListener('click', async () => {
-    const stream = await getMedia();
-    addMediaStream(stream, audioSection);
-
-    // getRoomPeers
-    socket.emit('call-peers', { roomId: roomIdServer }, (req) => {
-      // req have all the peerid;
-      const peersId = req[roomIdServer];
-      peersId.forEach((peerId) => connectToUser(peerId, stream, myPeer));
-    });
-
-    // calls all req[roomId] => call all people in the room
-    // console.log(getMedia());
-  });
+  // const myPeer = new Peer(undefined, {
+  //   host: 'peerjs-server.herokuapp.com',
+  //   secure: true,
+  //   port: 443,
+  // });
 
   if (status === 'create-room') {
     socket.emit('create-room', {
@@ -198,7 +187,7 @@ const connectFunction = (e, { status }) => {
 
   // listeners :)
 
-  // need fix
+  // need fix for chrome
   socket.on('seeked', async ({ time }) => {
     videoElement.currentTime = time;
   });
@@ -217,10 +206,7 @@ const connectFunction = (e, { status }) => {
     joinRoomButton.disabled = true;
     loadedDataUsers[data.id] = data.loadedData;
     colorizeSignal(data.loadDataUsers);
-
-    myPeer.on('open', (id) => {
-      socket.emit('peer-connected', { peerId: id, roomId: data.roomId });
-    });
+    connectPeerToPeer({ socket, data });
   });
 
   socket.on('pause', ({ nickname }) => {
@@ -368,14 +354,17 @@ function createConnectedPeopleList(peopleData, parent) {
   parent.append(ul);
 }
 
-//
+// web RTC function
 async function getMedia() {
-  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const stream = await navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: true,
+  });
   return stream;
 }
 
-function addMediaStream(stream, parent, MediaType = 'audio') {
-  const mediaElement = document.createElement(MediaType);
+function addMediaStream(stream, parent, MediaType = 'video') {
+  mediaElement = document.createElement(MediaType);
   mediaElement.controls = true;
   mediaElement.muted = true;
   mediaElement.srcObject = stream;
@@ -386,11 +375,6 @@ function addMediaStream(stream, parent, MediaType = 'audio') {
   return mediaElement;
 }
 
-function connectToUser(userId, stream, peerInstance) {
-  let mediaElement;
-  const call = peerInstance.call(userId, stream);
-  call.on('stream', (userMediaStream) => {
-    mediaElement = addMediaStream(userMediaStream, audioSection);
-  });
-  call.on('close', () => mediaElement.remove());
+function connectToPeerId(peerInstance, peerId, stream) {
+  return peerInstance.call(peerId, stream);
 }

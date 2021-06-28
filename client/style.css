@@ -243,6 +243,11 @@ input{
   left: 0;
 }
 
+video{
+  width: 100px;
+  height: 100px;
+}
+
 
 
 @media only screen and (max-width: 1200px){
