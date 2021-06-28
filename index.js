@@ -16,10 +16,12 @@ const io = socket(server);
 
 io.on('connection', (req) => {
   req.on('disconnecting', () => {
+    console.log('peer-disconnectiong', req.peerId);
     const roomId = [...req.rooms].find((item) => item !== req.id);
     req.leave(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
     io.to(roomId).emit('roomId', { roomId, connectedUsers });
+    io.to(roomId).emit('peer-disconnect', { peerId: req.peerId });
   });
 
   req.on('join-room', ({ roomId, loadedData, nickname }) => {

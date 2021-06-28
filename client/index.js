@@ -94,6 +94,8 @@ fullScreen.addEventListener('click', () => {
 let roomIdServer;
 const loadedDataUsers = {};
 let connectedUserCount = 0;
+let peerObject;
+const peers = {};
 const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
@@ -362,9 +364,10 @@ async function getMedia() {
   return stream;
 }
 
-function addMediaStream(stream, parent, MediaType = 'audio') {
-  mediaElement = document.createElement(MediaType);
+function addMediaStream(stream, parent, MediaType = 'audio', streamId) {
+  const mediaElement = document.createElement(MediaType);
   mediaElement.controls = true;
+  mediaElement.id = streamId.slice(1, streamId.length - 1);
   mediaElement.muted = true;
   mediaElement.srcObject = stream;
   mediaElement.addEventListener('loadedmetadata', () => {
@@ -375,5 +378,16 @@ function addMediaStream(stream, parent, MediaType = 'audio') {
 }
 
 function connectToPeerId(peerInstance, peerId, stream) {
-  return peerInstance.call(peerId, stream);
+  const call = peerInstance.call(peerId, stream);
+  let mediaElement;
+  call.on('stream', (userStream) => {
+    mediaElement = addMediaStream(
+      userStream,
+      audioSection1,
+      'audio',
+      userStream.id,
+    );
+  });
+  call.on('close', () => mediaElement.remove());
+  peers[call.peer] = call;
 }
