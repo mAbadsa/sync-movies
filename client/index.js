@@ -30,6 +30,7 @@ const globalNickname = { nickname: 'random user' };
 const nicknameForm = document.getElementById('nickname-form');
 const audioSection = document.getElementById('audio-section');
 const callBtn = document.getElementById('call-btn');
+const audioSection1 = document.getElementById('audio-section-1');
 
 const connectedPeopleList = document.getElementById('connected-people-list');
 
@@ -93,7 +94,6 @@ fullScreen.addEventListener('click', () => {
 let roomIdServer;
 const loadedDataUsers = {};
 let connectedUserCount = 0;
-const peers = {};
 const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
@@ -358,12 +358,11 @@ function createConnectedPeopleList(peopleData, parent) {
 async function getMedia() {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: true,
-    video: true,
   });
   return stream;
 }
 
-function addMediaStream(stream, parent, MediaType = 'video') {
+function addMediaStream(stream, parent, MediaType = 'audio') {
   mediaElement = document.createElement(MediaType);
   mediaElement.controls = true;
   mediaElement.muted = true;

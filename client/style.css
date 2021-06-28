@@ -243,6 +243,15 @@ input{
   left: 0;
 }
 
+#audio-section-1{
+  position: absolute;
+  left:0;
+  background:white;
+}
+
+h1{
+  color:red
+}
 video{
   width: 100px;
   height: 100px;

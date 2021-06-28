@@ -7,11 +7,18 @@ let peerObject;
 function connectPeerToPeer({ socket, data }) {
   if (peerObject) return;
   // Peer Constructor
+  // const myPeer = new Peer(undefined, {
+  //   host: '/',
+  //   port: '9000',
+  // });
+
   const myPeer = new Peer(undefined, {
     host: 'peerjs-server.herokuapp.com',
     secure: true,
     port: 443,
   });
+
+  peerObject = myPeer;
 
   // Peer Open Event
   myPeer.on('open', (id) => {
@@ -25,7 +32,7 @@ function connectPeerToPeer({ socket, data }) {
     const stream = await getMedia();
     call.answer(stream);
     call.on('stream', (userStream) => {
-      mediaElement = addMediaStream(userStream, audioSection);
+      mediaElement = addMediaStream(userStream, audioSection1);
     });
     call.on('close', () => mediaElement.remove());
   });
