@@ -235,6 +235,15 @@ input{
 
 }
 
+#audio-section{
+  top:20rem;
+  position: absolute;
+  width: fit-content;
+  background:white;
+  left: 0;
+}
+
+
 
 @media only screen and (max-width: 1200px){
   .container{

@@ -10,7 +10,8 @@
 
 
   <script src="https://cdn.jsdelivr.net/npm/@joeattardi/emoji-button@2.2.4/dist/index.min.js"></script>
-  <script src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
+  <script defer src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+  <script defer src="https://cdn.socket.io/3.1.3/socket.io.min.js" integrity="sha384-cPwlPLvBTa3sKAgddT6krw0cJat7egBga3DJepJyrLl4Q9/5WLra3rrnMcyTyOnh" crossorigin="anonymous"></script>
 
   <link rel="stylesheet" href="style.css">
 </head>
@@ -30,6 +31,7 @@
     <div class="side-container">
       <div id='movie-section'>
         <h5>Movies ... <span id='connected-people'></span> </h5>
+        <div id='audio-section'></div>
         <div class="controls">
 
           <button id='play-button' class="control-button">
@@ -45,6 +47,8 @@
             <i id='expand-icon' class="fas fa-expand"></i>
             <i id='compress-icon' class="fas fa-compress-arrows-alt hidden"></i>
           </button>
+
+          <button type="button" id='call-btn' class="control-button"><i class="fas fa-phone-square-alt"></i></button>
 
 
 

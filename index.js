@@ -59,6 +59,19 @@ io.on('connection', (req) => {
     });
   });
 
+  req.on('peer-connected', ({ peerId }) => {
+    console.log('peer-connected', peerId, req.peerId);
+    req.peerId = peerId || req.peerId;
+  });
+
+  req.on('call-peers', ({ roomId }, callback) => {
+    const peersId = [...io.sockets.sockets]
+      .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
+      .map((item) => item[1].peerId);
+    callback({ [roomId]: peersId });
+    // req.to(roomId).emit('peers', { peersId });
+  });
+
   req.on('loadeddata', ({ roomId, loadedData }) => {
     req.loadedData = loadedData;
     const loadDataUsers = [...io.sockets.sockets].filter(

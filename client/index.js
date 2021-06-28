@@ -24,6 +24,8 @@ const createRoom = document.getElementById('create-room');
 const joinRoom = document.getElementById('join-room');
 const globalNickname = { nickname: 'random user' };
 const nicknameForm = document.getElementById('nickname-form');
+const audioSection = document.getElementById('audio-section');
+const callBtn = document.getElementById('call-btn');
 
 const connectedPeopleList = document.getElementById('connected-people-list');
 
@@ -90,6 +92,26 @@ let connectedUserCount = 0;
 
 const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
+
+  const myPeer = new Peer(undefined, {
+    port: 3001,
+    host: '/',
+  });
+
+  callBtn.addEventListener('click', async () => {
+    const stream = await getMedia();
+    addMediaStream(stream, audioSection);
+
+    // getRoomPeers
+    socket.emit('call-peers', { roomId: roomIdServer }, (req) => {
+      // req have all the peerid;
+      const peersId = req[roomIdServer];
+      peersId.forEach((peerId) => connectToUser(peerId, stream, myPeer));
+    });
+
+    // calls all req[roomId] => call all people in the room
+    // console.log(getMedia());
+  });
 
   if (status === 'create-room') {
     socket.emit('create-room', {
@@ -194,6 +216,10 @@ const connectFunction = (e, { status }) => {
     joinRoomButton.disabled = true;
     loadedDataUsers[data.id] = data.loadedData;
     colorizeSignal(data.loadDataUsers);
+
+    myPeer.on('open', (id) => {
+      socket.emit('peer-connected', { peerId: id, roomId: data.roomId });
+    });
   });
 
   socket.on('pause', ({ nickname }) => {
@@ -339,4 +365,31 @@ function createConnectedPeopleList(peopleData, parent) {
   });
   ul.append(...list);
   parent.append(ul);
+}
+
+//
+async function getMedia() {
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  return stream;
+}
+
+function addMediaStream(stream, parent, MediaType = 'audio') {
+  const mediaElement = document.createElement(MediaType);
+  mediaElement.controls = true;
+  mediaElement.muted = true;
+  mediaElement.srcObject = stream;
+  mediaElement.addEventListener('loadedmetadata', () => {
+    mediaElement.play();
+  });
+  parent.append(mediaElement);
+  return mediaElement;
+}
+
+function connectToUser(userId, stream, peerInstance) {
+  let mediaElement;
+  const call = peerInstance.call(userId, stream);
+  call.on('stream', (userMediaStream) => {
+    mediaElement = addMediaStream(userMediaStream, audioSection);
+  });
+  call.on('close', () => mediaElement.remove());
 }
