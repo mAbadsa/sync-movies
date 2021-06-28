@@ -94,7 +94,6 @@ const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
   const myPeer = new Peer(undefined, {
-    port: 3001,
     host: '/',
   });
 
