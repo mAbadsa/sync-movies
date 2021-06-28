@@ -94,7 +94,9 @@ const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
 
   const myPeer = new Peer(undefined, {
-    host: '/',
+    host: 'async-movies-peerjs-server.herokuapp.com/',
+    key: 'hassansamielnajjar',
+    port: 9000,
   });
 
   callBtn.addEventListener('click', async () => {
