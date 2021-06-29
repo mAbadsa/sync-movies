@@ -35,19 +35,27 @@ function connectPeerToPeer({ socket, data }) {
 
     if (answerCall) {
       peers[call.peer] = call;
-      let mediaElement;
       const stream = await getMedia();
-      addMediaStream(stream, audioSection, 'audio', stream.id); // show my voice
+
+      if (!callersMediaElement[thisPeerId]) {
+        callersMediaElement[thisPeerId] = addMediaStream(
+          stream,
+          audioSection,
+          'audio',
+          stream.id,
+        ); // show my voice
+      }
+
       call.answer(stream);
       call.on('stream', (userStream) => {
-        mediaElement = addMediaStream(
+        callersMediaElement[call.peer] = addMediaStream(
           userStream,
           audioSection1,
           'audio',
           userStream.id,
         );
       });
-      call.on('close', () => mediaElement.remove());
+      call.on('close', () => callersMediaElement[call.peer].remove());
     } else {
       console.log('call denied');
     }
@@ -57,6 +65,10 @@ function connectPeerToPeer({ socket, data }) {
     peers[peerId].close();
   });
 
+  // socket.on('call-other-room-members', () => {
+  //   callBtn.click();
+  // });
+
   callBtn.addEventListener('click', () =>
     handleCallButtonClick({ socket, thisPeerId, myPeer }),
   );
@@ -65,8 +77,15 @@ function connectPeerToPeer({ socket, data }) {
 // handle Call Button Click cb function
 async function handleCallButtonClick({ socket, thisPeerId, myPeer }) {
   const stream = await getMedia();
-  console.log(stream);
-  addMediaStream(stream, audioSection, 'audio', stream.id); // self
+  // To prevent the caller to duplicate his stream and element
+  if (!callersMediaElement[thisPeerId]) {
+    callersMediaElement[thisPeerId] = addMediaStream(
+      stream,
+      audioSection,
+      'audio',
+      stream.id,
+    ); // self
+  }
 
   // getRoomPeers
   socket.emit('call-peers', { roomId: roomIdServer }, (req) => {

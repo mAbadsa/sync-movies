@@ -72,6 +72,7 @@ io.on('connection', (req) => {
       .map((item) => item[1].peerId);
     callback({ [roomId]: peersId });
     // req.to(roomId).emit('peers', { peersId });
+    // req.to(roomId).emit('call-other-room-members');
   });
 
   req.on('loadeddata', ({ roomId, loadedData }) => {

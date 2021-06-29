@@ -95,6 +95,9 @@ let roomIdServer;
 const loadedDataUsers = {};
 let connectedUserCount = 0;
 let peerObject;
+let callerMediaElement;
+const callersMediaElement = {};
+
 const peers = {};
 const connectFunction = (e, { status }) => {
   const socket = io.connect('/');
@@ -378,16 +381,17 @@ function addMediaStream(stream, parent, MediaType = 'audio', streamId) {
 }
 
 function connectToPeerId(peerInstance, peerId, stream) {
-  const call = peerInstance.call(peerId, stream);
-  let mediaElement;
-  call.on('stream', (userStream) => {
-    mediaElement = addMediaStream(
-      userStream,
-      audioSection1,
-      'audio',
-      userStream.id,
-    );
-  });
-  call.on('close', () => mediaElement.remove());
-  peers[call.peer] = call;
+  if (!callersMediaElement[peerId]) {
+    const call = peerInstance.call(peerId, stream);
+    call.on('stream', (userStream) => {
+      callersMediaElement[peerId] = addMediaStream(
+        userStream,
+        audioSection1,
+        'audio',
+        userStream.id,
+      );
+    });
+    call.on('close', () => callersMediaElement[peerId].remove());
+    peers[call.peer] = call;
+  }
 }
