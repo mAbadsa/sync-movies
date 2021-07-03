@@ -42,7 +42,7 @@ io.on('connection', (req) => {
   });
 
   req.on('create-room', ({ loadedData, nickname }) => {
-    const roomId = `${req.id}%%${Math.random().toFixed(3)}`;
+    const roomId = `${req.id}_${Math.random().toFixed(3)}`;
     req.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
     req.loadedData = loadedData;
