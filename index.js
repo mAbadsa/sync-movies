@@ -16,7 +16,6 @@ const io = socket(server);
 
 io.on('connection', (req) => {
   req.on('disconnecting', () => {
-    console.log('peer-disconnectiong', req.peerId);
     const roomId = [...req.rooms].find((item) => item !== req.id);
     req.leave(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
@@ -43,7 +42,7 @@ io.on('connection', (req) => {
   });
 
   req.on('create-room', ({ loadedData, nickname }) => {
-    const roomId = `${req.id}+${Math.random().toFixed(3)}`;
+    const roomId = `${req.id}%%${Math.random().toFixed(3)}`;
     req.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
     req.loadedData = loadedData;
@@ -62,7 +61,6 @@ io.on('connection', (req) => {
   });
 
   req.on('peer-connected', ({ peerId }) => {
-    console.log('peer-connected', peerId, req.peerId);
     req.peerId = peerId || req.peerId;
   });
 
@@ -91,7 +89,6 @@ io.on('connection', (req) => {
 
   req.on('timeUpdated', ({ roomId, currentTime }) => {
     req.currentTime = currentTime;
-    console.log(req.nickname, req.currentTime);
     const usersNickNames = [...io.sockets.sockets]
       .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
       .map((item) => ({

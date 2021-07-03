@@ -44,8 +44,15 @@
   width: 100%;
 }
 
+
+
 .far,.fas {
   font-size: 2rem;
+}
+
+.style{
+  font-size: 1rem;
+  color:rgba(255, 255, 255, 0.487)
 }
 
 #room p{
@@ -55,7 +62,12 @@
 #room{
   display: flex;
   flex-direction: column;
-  font-size:0.75rem
+  font-size:0.75rem;
+  display: none;
+}
+
+#room-management-div{
+  display: none;
 }
 
 .flex{
@@ -236,22 +248,45 @@ input{
 }
 
 #audio-section{
-  top:20rem;
+  bottom: 0;
   position: absolute;
   width: fit-content;
   background:white;
   left: 0;
+  background-color:transparent
 }
 
 #audio-section-1{
   position: absolute;
   left:0;
+  top:0;
   background:white;
+  background-color:transparent
 }
 
-h1{
-  color:red
+#audio-section p,#audio-section-1 p{
+  color:rgba(255, 0, 0, 0.419)
 }
+
+#audio-section p{
+  position: absolute;
+  top:0;
+  left:0;
+  z-index: -1000;
+}
+
+#audio-section-1 p{
+  position: absolute;
+  top:0;
+  bottom:0;
+  z-index: -1000;
+}
+
+audio {
+background-color:transparent
+}
+
+
 video{
   width: 100px;
   height: 100px;

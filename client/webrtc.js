@@ -9,23 +9,22 @@
 function connectPeerToPeer({ socket, data }) {
   if (peerObject) return;
   // Peer Constructor
-  // const myPeer = new Peer(undefined, {
-  //   host: '/',
-  //   port: '9000',
-  // });
-
   const myPeer = new Peer(undefined, {
-    host: 'peerjs-server.herokuapp.com',
-    secure: true,
-    port: 443,
+    host: '/',
+    port: '9000',
   });
+
+  // const myPeer = new Peer(undefined, {
+  //   host: 'peerjs-server.herokuapp.com',
+  //   secure: true,
+  //   port: 443,
+  // });
 
   peerObject = myPeer;
 
   // Peer Open Event
   myPeer.on('open', (id) => {
     thisPeerId = id;
-    console.log(id);
     socket.emit('peer-connected', { peerId: id, roomId: data.roomId });
   });
 
@@ -38,22 +37,23 @@ function connectPeerToPeer({ socket, data }) {
       const stream = await getMedia();
 
       if (!callersMediaElement[thisPeerId]) {
-        callersMediaElement[thisPeerId] = addMediaStream(
+        callersMediaElement[thisPeerId] = addMediaStream({
           stream,
-          audioSection,
-          'audio',
-          stream.id,
-        ); // show my voice
+          parent: audioSection,
+          streamId: stream.id,
+        }); // show my voice
       }
 
       call.answer(stream);
       call.on('stream', (userStream) => {
-        callersMediaElement[call.peer] = addMediaStream(
-          userStream,
-          audioSection1,
-          'audio',
-          userStream.id,
-        );
+        if (!callersMediaElement[call.peer]) {
+          callersMediaElement[call.peer] = addMediaStream({
+            stream: userStream,
+            parent: audioSection1,
+            streamId: userStream.id,
+          });
+          callersMediaElement[call.peer].muted = false;
+        }
       });
       call.on('close', () => callersMediaElement[call.peer].remove());
     } else {
@@ -65,10 +65,6 @@ function connectPeerToPeer({ socket, data }) {
     peers[peerId].close();
   });
 
-  // socket.on('call-other-room-members', () => {
-  //   callBtn.click();
-  // });
-
   callBtn.addEventListener('click', () =>
     handleCallButtonClick({ socket, thisPeerId, myPeer }),
   );
@@ -79,12 +75,12 @@ async function handleCallButtonClick({ socket, thisPeerId, myPeer }) {
   const stream = await getMedia();
   // To prevent the caller to duplicate his stream and element
   if (!callersMediaElement[thisPeerId]) {
-    callersMediaElement[thisPeerId] = addMediaStream(
+    callersMediaElement[thisPeerId] = addMediaStream({
       stream,
-      audioSection,
-      'audio',
-      stream.id,
-    ); // self
+      parent: audioSection,
+
+      streamId: stream.id,
+    }); // self
   }
 
   // getRoomPeers

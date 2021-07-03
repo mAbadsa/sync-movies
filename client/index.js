@@ -1,10 +1,10 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-shadow */
 /* eslint-disable no-use-before-define */
 /* eslint-disable no-undef */
 
 // //
-// navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 //
 const videoElement = document.getElementById('video-element');
 const message = document.getElementById('message');
@@ -31,15 +31,31 @@ const nicknameForm = document.getElementById('nickname-form');
 const audioSection = document.getElementById('audio-section');
 const callBtn = document.getElementById('call-btn');
 const audioSection1 = document.getElementById('audio-section-1');
-
+const inputRoomId = document.getElementById('input-room-id');
 const connectedPeopleList = document.getElementById('connected-people-list');
 
-nicknameForm.addEventListener('submit', (e) => {
-  e.preventDefault();
-  const nickname = e.target[0].value;
-  globalNickname.nickname = nickname;
-  document.title += ` - ${nickname}`;
+if (localStorage.getItem('nickname')) {
+  globalNickname.nickname = localStorage.getItem('nickname');
+  document.title += ` - ${globalNickname.nickname}`;
   nicknameForm.classList.add('hidden');
+} else {
+  nicknameForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const nickname = e.target[0].value;
+    globalNickname.nickname = nickname;
+    localStorage.setItem('nickname', nickname);
+    document.title += ` - ${nickname}`;
+    nicknameForm.classList.add('hidden');
+  });
+}
+
+window.addEventListener('load', () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomId = urlParams.get('roomId');
+  if (roomId) {
+    return connectFunction(roomId, { status: 'join-room' });
+  }
+  return null;
 });
 
 createRoom.addEventListener('click', () => {
@@ -53,7 +69,7 @@ joinRoom.addEventListener('click', () => {
   if (globalNickname.nickname === 'random user') {
     return alert('please add a nickname :)');
   }
-  roomManagementDiv.classList.add('hidden');
+  return roomManagementDiv.classList.add('hidden');
 });
 
 // videoElement.removeAttribute('controls');
@@ -99,9 +115,8 @@ let callerMediaElement;
 const callersMediaElement = {};
 
 const peers = {};
-const connectFunction = (e, { status }) => {
+const connectFunction = (roomId, { status }) => {
   const socket = io.connect('/');
-
   // const myPeer = new Peer(undefined, {
   //   host: 'peerjs-server.herokuapp.com',
   //   secure: true,
@@ -114,9 +129,8 @@ const connectFunction = (e, { status }) => {
       nickname: globalNickname.nickname,
     });
   } else if (status === 'join-room') {
-    e.preventDefault();
     socket.emit('join-room', {
-      roomId: e.target[0].value,
+      roomId,
       loadedData: videoElement.readyState >= 2,
       nickname: globalNickname.nickname,
     });
@@ -203,10 +217,12 @@ const connectFunction = (e, { status }) => {
       `Joined Room : ${data.roomId} - Connected People ${data.connectedUsers} `,
       joinedSound,
     );
-    roomFeedback.value = `${data.roomId}`;
-    roomFeedback.select();
+
+    if (status === 'create-room') {
+      const value = `${window.location.href}?roomId=${data.roomId}`;
+      copyToClipboard(value);
+    }
     connectedUserCount = data.connectedUsers;
-    document.execCommand('copy');
     connectedPeople.innerText = `Connected People ${data.connectedUsers}`;
     joinRoomButton.disabled = true;
     loadedDataUsers[data.id] = data.loadedData;
@@ -269,7 +285,8 @@ const connectFunction = (e, { status }) => {
 
 roomForm.addEventListener('submit', (e) => {
   joinRoomDiv.classList.add('hidden');
-  connectFunction(e, { status: 'join-room' });
+  e.preventDefault();
+  connectFunction(e.target[0].value, { status: 'join-room' });
 });
 
 createRoom.addEventListener('click', () => {
@@ -277,6 +294,7 @@ createRoom.addEventListener('click', () => {
     return alert('please add a nickname :)');
   }
   roomManagementDiv.classList.add('hidden');
+
   return connectFunction(null, { status: 'create-room' });
 });
 
@@ -363,20 +381,80 @@ function createConnectedPeopleList(peopleData, parent) {
 async function getMedia() {
   const stream = await navigator.mediaDevices.getUserMedia({
     audio: true,
+    video: true,
   });
   return stream;
 }
 
-function addMediaStream(stream, parent, MediaType = 'audio', streamId) {
+function addMediaStream({ stream, parent, MediaType = 'video', streamId }) {
   const mediaElement = document.createElement(MediaType);
-  mediaElement.controls = true;
+  mediaElement.controls = false;
   mediaElement.id = streamId.slice(1, streamId.length - 1);
   mediaElement.muted = true;
   mediaElement.srcObject = stream;
   mediaElement.addEventListener('loadedmetadata', () => {
     mediaElement.play();
   });
-  parent.append(mediaElement);
+  const controls = document.createElement('div');
+  controls.classList.add('controls');
+  const muteButton = document.createElement('button');
+  const audioIcon = document.createElement('i');
+
+  audioIcon.classList.add(...['fas', 'fa-microphone', 'style']);
+
+  const audioIconDisabled = document.createElement('i');
+  audioIconDisabled.classList.add(
+    ...['fas', 'fa-microphone-slash', 'hidden', 'style'],
+  );
+
+  muteButton.append(audioIcon, audioIconDisabled);
+  muteButton.style.zIndex = 1000;
+  muteButton.classList.add(['control-button']);
+
+  const audioTrack = stream.getAudioTracks()[0];
+
+  muteButton.addEventListener('click', () => {
+    audioTrack.enabled = !audioTrack.enabled;
+    if (audioTrack.enabled) {
+      audioIcon.classList.remove('hidden');
+      audioIconDisabled.classList.add('hidden');
+    } else {
+      audioIconDisabled.classList.remove('hidden');
+      audioIcon.classList.add('hidden');
+    }
+  });
+
+  const videoButton = document.createElement('button');
+  const videoIcon = document.createElement('i');
+  videoIcon.classList.add(...['fas', 'fa-video', 'style']);
+  videoButton.append(videoIcon);
+
+  const videoIconDisabled = document.createElement('i');
+  videoIconDisabled.classList.add(
+    ...['fas', 'fa-video-slash', 'hidden', 'style'],
+  );
+  videoButton.append(videoIconDisabled);
+
+  videoButton.style.zIndex = 1000;
+  videoButton.classList.add('control-button');
+  videoButton.disabled = true;
+  const videoTrack = stream.getVideoTracks()[0];
+  if (videoTrack) {
+    videoButton.disabled = false;
+    videoButton.addEventListener('click', () => {
+      videoTrack.enabled = !videoTrack.enabled;
+      if (videoTrack.enabled) {
+        videoIcon.classList.remove('hidden');
+        videoIconDisabled.classList.add('hidden');
+      } else {
+        videoIconDisabled.classList.remove('hidden');
+        videoIcon.classList.add('hidden');
+      }
+    });
+  }
+
+  controls.append(muteButton, videoButton);
+  parent.append(mediaElement, controls);
   return mediaElement;
 }
 
@@ -384,14 +462,25 @@ function connectToPeerId(peerInstance, peerId, stream) {
   if (!callersMediaElement[peerId]) {
     const call = peerInstance.call(peerId, stream);
     call.on('stream', (userStream) => {
-      callersMediaElement[peerId] = addMediaStream(
-        userStream,
-        audioSection1,
-        'audio',
-        userStream.id,
-      );
+      if (!callersMediaElement[peerId]) {
+        callersMediaElement[peerId] = addMediaStream({
+          stream: userStream,
+          parent: audioSection1,
+          streamId: userStream.id,
+        });
+        callersMediaElement[peerId].muted = false;
+      }
     });
     call.on('close', () => callersMediaElement[peerId].remove());
     peers[call.peer] = call;
   }
+}
+
+function copyToClipboard(str) {
+  const el = document.createElement('textarea');
+  el.value = str;
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
 }
