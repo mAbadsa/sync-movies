@@ -24,6 +24,9 @@ io.on('connection', (req) => {
   });
 
   req.on('join-room', ({ roomId, loadedData, nickname }) => {
+    // check roomId - should be in rooms
+
+    if (!io.sockets.adapter.rooms.get(roomId)) return;
     req.join(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
     req.loadedData = loadedData;

@@ -411,9 +411,9 @@ function addMediaStream({ stream, parent, MediaType = 'video', streamId }) {
   muteButton.style.zIndex = 1000;
   muteButton.classList.add(['control-button']);
 
-  const audioTrack = stream.getAudioTracks()[0];
-
   muteButton.addEventListener('click', () => {
+    const audioTrack = stream.getAudioTracks()[0];
+    console.log('audioTrack', audioTrack);
     audioTrack.enabled = !audioTrack.enabled;
     if (audioTrack.enabled) {
       audioIcon.classList.remove('hidden');
@@ -426,13 +426,11 @@ function addMediaStream({ stream, parent, MediaType = 'video', streamId }) {
 
   const videoButton = document.createElement('button');
   const videoIcon = document.createElement('i');
-  videoIcon.classList.add(...['fas', 'fa-video', 'style']);
+  videoIcon.classList.add(...['fas', 'fa-video', 'style', 'hidden']);
   videoButton.append(videoIcon);
 
   const videoIconDisabled = document.createElement('i');
-  videoIconDisabled.classList.add(
-    ...['fas', 'fa-video-slash', 'hidden', 'style'],
-  );
+  videoIconDisabled.classList.add(...['fas', 'fa-video-slash', 'style']);
   videoButton.append(videoIconDisabled);
 
   videoButton.style.zIndex = 1000;
@@ -453,9 +451,11 @@ function addMediaStream({ stream, parent, MediaType = 'video', streamId }) {
     });
   }
 
+  const containerDiv = document.createElement('div');
   controls.append(muteButton, videoButton);
-  parent.append(mediaElement, controls);
-  return mediaElement;
+  containerDiv.append(mediaElement, controls);
+  parent.append(containerDiv);
+  return containerDiv;
 }
 
 function connectToPeerId(peerInstance, peerId, stream) {

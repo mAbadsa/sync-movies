@@ -35,6 +35,8 @@ function connectPeerToPeer({ socket, data }) {
     if (answerCall) {
       peers[call.peer] = call;
       const stream = await getMedia();
+      console.log('user stream', stream);
+      stream.getVideoTracks()[0].enabled = false;
 
       if (!callersMediaElement[thisPeerId]) {
         callersMediaElement[thisPeerId] = addMediaStream({
@@ -46,6 +48,11 @@ function connectPeerToPeer({ socket, data }) {
 
       call.answer(stream);
       call.on('stream', (userStream) => {
+        console.log(
+          'stream changed',
+          userStream,
+          userStream.getVideoTracks()[0].enabled,
+        );
         if (!callersMediaElement[call.peer]) {
           callersMediaElement[call.peer] = addMediaStream({
             stream: userStream,
@@ -73,6 +80,7 @@ function connectPeerToPeer({ socket, data }) {
 // handle Call Button Click cb function
 async function handleCallButtonClick({ socket, thisPeerId, myPeer }) {
   const stream = await getMedia();
+  stream.getVideoTracks()[0].enabled = false;
   // To prevent the caller to duplicate his stream and element
   if (!callersMediaElement[thisPeerId]) {
     callersMediaElement[thisPeerId] = addMediaStream({
