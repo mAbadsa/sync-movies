@@ -270,6 +270,10 @@ const connectFunction = (roomId, { status }) => {
       roomId: roomIdServer,
     });
   });
+  // connected error
+  socket.on('connect_error', (err) => {
+    console.log(err.message); // not authorized
+  });
 
   // Listen for events
   socket.on('chat', (data) => {

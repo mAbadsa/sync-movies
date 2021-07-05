@@ -14,7 +14,8 @@
     "@joeattardi/emoji-button": "^4.6.0",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
-    "socket.io": "^4.1.2"
+    "socket.io": "^4.1.2",
+    "winston": "^3.3.3"
   },
   "devDependencies": {
     "eslint": "^7.28.0",

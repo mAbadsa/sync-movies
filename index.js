@@ -1,6 +1,20 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-console */
 require('dotenv').config();
+const { createLogger, format, transports } = require('winston');
+
+const { combine, timestamp, label, printf } = format;
+
+const myFormat = printf(
+  ({ level, message, label, timestamp }) =>
+    `${timestamp} [${label}] ${level}: ${message}`,
+);
+
+const logger = createLogger({
+  format: combine(label({ label: 'Socket Error' }), timestamp(), myFormat),
+  transports: [new transports.File({ filename: 'error.log', level: 'error' })],
+});
+
 const socket = require('socket.io');
 
 const {
@@ -8,109 +22,156 @@ const {
 } = process;
 const app = require('./app');
 
+app.use((err, req, res, next) => {
+  logger.log({
+    level: 'error',
+    message: err.message,
+  });
+
+  res.status(500).json({ message: 'Server Error' });
+});
+
 const server = app.listen(PORT, () =>
   console.log(`server is connected @ http://localhost:${PORT}`),
 );
 
 const io = socket(server);
 
+const wrapper = (socketInstance, fun) => (params) => {
+  try {
+    fun(params);
+  } catch (err) {
+    socketInstance.use((_socket, next) => {
+      logger.log({
+        level: 'error',
+        message: err.message,
+      });
+      next(err);
+    });
+  }
+};
+
 io.on('connection', (req) => {
-  req.on('disconnecting', () => {
-    const roomId = [...req.rooms].find((item) => item !== req.id);
-    req.leave(roomId);
-    const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    io.to(roomId).emit('roomId', { roomId, connectedUsers });
-    io.to(roomId).emit('peer-disconnect', { peerId: req.peerId });
-  });
+  req.on(
+    'disconnecting',
+    wrapper(io, () => {
+      const roomId = [...req.rooms].find((item) => item !== req.id);
+      req.leave(roomId);
+      const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+      io.to(roomId).emit('roomId', { roomId, connectedUsers });
+      io.to(roomId).emit('peer-disconnect', { peerId: req.peerId });
+    }),
+  );
 
-  req.on('join-room', ({ roomId, loadedData, nickname }) => {
-    // check roomId - should be in rooms
+  req.on(
+    'join-room',
+    wrapper(io, ({ roomId, loadedData, nickname }) => {
+      // check roomId - should be in rooms
 
-    if (!io.sockets.adapter.rooms.get(roomId)) return;
-    req.join(roomId);
-    const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    req.loadedData = loadedData;
-    req.nickname = nickname;
-    const loadDataUsers = [...io.sockets.sockets].filter(
-      (item) =>
-        io.sockets.adapter.rooms.get(roomId).has(item[0]) && item[1].loadedData,
-    ).length;
-    io.to(roomId).emit('roomId', {
-      roomId,
-      connectedUsers,
-      loadedData,
-      id: req.id,
-      loadDataUsers,
-    });
-  });
+      if (!io.sockets.adapter.rooms.get(roomId)) return;
+      req.join(roomId);
+      const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+      req.loadedData = loadedData;
+      req.nickname = nickname;
+      const loadDataUsers = [...io.sockets.sockets].filter(
+        (item) =>
+          io.sockets.adapter.rooms.get(roomId)?.has(item[0]) &&
+          item[1].loadedData,
+      ).length;
+      io.to(roomId).emit('roomId', {
+        roomId,
+        connectedUsers,
+        loadedData,
+        id: req.id,
+        loadDataUsers,
+      });
+    }),
+  );
 
-  req.on('create-room', ({ loadedData, nickname }) => {
-    const roomId = `${req.id}_${Math.random().toFixed(3)}`;
-    req.join(roomId);
-    const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    req.loadedData = loadedData;
-    req.nickname = nickname;
-    const loadDataUsers = [...io.sockets.sockets].filter(
-      (item) =>
-        io.sockets.adapter.rooms.get(roomId).has(item[0]) && item[1].loadedData,
-    ).length;
-    io.to(roomId).emit('roomId', {
-      roomId,
-      connectedUsers,
-      loadedData,
-      id: req.id,
-      loadDataUsers,
-    });
-  });
+  req.on(
+    'create-room',
+    wrapper(io, ({ loadedData, nickname }) => {
+      const roomId = `${req.id}_${Math.random().toFixed(3)}`;
+      req.join(roomId);
+      const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
+      req.loadedData = loadedData;
+      req.nickname = nickname;
+      const loadDataUsers = [...io.sockets.sockets].filter(
+        (item) =>
+          io.sockets.adapter.rooms.get(roomId)?.has(item[0]) &&
+          item[1].loadedData,
+      ).length;
+      io.to(roomId).emit('roomId', {
+        roomId,
+        connectedUsers,
+        loadedData,
+        id: req.id,
+        loadDataUsers,
+      });
+    }),
+  );
 
   req.on('peer-connected', ({ peerId }) => {
     req.peerId = peerId || req.peerId;
   });
 
-  req.on('call-peers', ({ roomId }, callback) => {
-    const peersId = [...io.sockets.sockets]
-      .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
-      .map((item) => item[1].peerId);
-    callback({ [roomId]: peersId });
-    // req.to(roomId).emit('peers', { peersId });
-    // req.to(roomId).emit('call-other-room-members');
-  });
+  req.on(
+    'call-peers',
+    wrapper(io, ({ roomId }, callback) => {
+      const peersId = [...io.sockets.sockets]
+        .filter((item) => io.sockets.adapter.rooms.get(roomId)?.has(item[0]))
+        .map((item) => item[1].peerId);
+      callback({ [roomId]: peersId });
+    }),
+  );
 
-  req.on('loadeddata', ({ roomId, loadedData }) => {
-    req.loadedData = loadedData;
-    const loadDataUsers = [...io.sockets.sockets].filter(
-      (item) =>
-        io.sockets.adapter.rooms.get(roomId).has(item[0]) && item[1].loadedData,
-    ).length;
+  req.on(
+    'loadeddata',
+    wrapper(io, ({ roomId, loadedData }) => {
+      req.loadedData = loadedData;
+      const loadDataUsers = [...io.sockets.sockets].filter(
+        (item) =>
+          io.sockets.adapter.rooms.get(roomId)?.has(item[0]) &&
+          item[1].loadedData,
+      ).length;
 
-    io.to(roomId).emit('loadeddata', {
-      id: req.id,
-      loadedData,
-      loadDataUsers,
-    });
-  });
+      io.to(roomId).emit('loadeddata', {
+        id: req.id,
+        loadedData,
+        loadDataUsers,
+      });
+    }),
+  );
 
-  req.on('timeUpdated', ({ roomId, currentTime }) => {
-    req.currentTime = currentTime;
-    const usersNickNames = [...io.sockets.sockets]
-      .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
-      .map((item) => ({
-        nickname: item[1].nickname,
-        currentTime: item[1].currentTime,
-      }));
-    io.to(roomId).emit('timeUpdated', {
-      id: req.id,
-      currentTime,
-      usersNickNames,
-    });
-  });
+  req.on(
+    'timeUpdated',
+    wrapper(io, ({ roomId, currentTime }) => {
+      req.currentTime = currentTime;
+      awwa;
+      const usersNickNames = [...io.sockets.sockets]
+        .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
+        .map((item) => ({
+          nickname: item[1].nickname,
+          currentTime: item[1].currentTime,
+        }));
+      io.to(roomId).emit('timeUpdated', {
+        id: req.id,
+        currentTime,
+        usersNickNames,
+      });
+    }),
+  );
 
-  req.on('movieUrl', (data) => {
-    io.sockets.sockets.forEach((socketItem) => {
-      socketItem.loadedData = false;
-    });
-    req.to(data.roomId).emit('movieUrl', data.url);
-  });
+  req.on(
+    'movieUrl',
+    wrapper(io, (data) => {
+      io.sockets.sockets.forEach((socketItem) => {
+        socketItem.loadedData = false;
+      });
+      // check if data.url is valid
+      req.to(data.roomId).emit('movieUrl', data.url);
+    }),
+  );
 
   //
   req.on('seeked', ({ time, roomId }) => {
