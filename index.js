@@ -1,21 +1,9 @@
 /* eslint-disable no-param-reassign */
 /* eslint-disable no-console */
 require('dotenv').config();
-const { createLogger, format, transports } = require('winston');
-
-const { combine, timestamp, label, printf } = format;
-
-const myFormat = printf(
-  ({ level, message, label, timestamp }) =>
-    `${timestamp} [${label}] ${level}: ${message}`,
-);
-
-const logger = createLogger({
-  format: combine(label({ label: 'Socket Error' }), timestamp(), myFormat),
-  transports: [new transports.File({ filename: 'error.log', level: 'error' })],
-});
-
 const socket = require('socket.io');
+const logger = require('./logger');
+const terminate = require('./terminate');
 
 const {
   env: { PORT },
@@ -34,6 +22,16 @@ app.use((err, req, res, next) => {
 const server = app.listen(PORT, () =>
   console.log(`server is connected @ http://localhost:${PORT}`),
 );
+
+const exitHandler = terminate(server, {
+  coredump: false,
+  timeout: 500,
+});
+
+process.on('uncaughtException', exitHandler(1, 'Unexpected Error'));
+process.on('unhandledRejection', exitHandler(1, 'Unhandled Promise'));
+process.on('SIGTERM', exitHandler(0, 'SIGTERM'));
+process.on('SIGINT', exitHandler(0, 'SIGINT'));
 
 const io = socket(server);
 
@@ -147,7 +145,6 @@ io.on('connection', (req) => {
     'timeUpdated',
     wrapper(io, ({ roomId, currentTime }) => {
       req.currentTime = currentTime;
-      awwa;
       const usersNickNames = [...io.sockets.sockets]
         .filter((item) => io.sockets.adapter.rooms.get(roomId).has(item[0]))
         .map((item) => ({
