@@ -113,15 +113,13 @@ io.on('connection', (req) => {
     req.peerId = peerId || req.peerId;
   });
 
-  req.on(
-    'call-peers',
-    wrapper(io, ({ roomId }, callback) => {
-      const peersId = [...io.sockets.sockets]
-        .filter((item) => io.sockets.adapter.rooms.get(roomId)?.has(item[0]))
-        .map((item) => item[1].peerId);
-      callback({ [roomId]: peersId });
-    }),
-  );
+  req.on('call-peers', ({ roomId }, callback) => {
+    console.log(callback);
+    const peersId = [...io.sockets.sockets]
+      .filter((item) => io.sockets.adapter.rooms.get(roomId)?.has(item[0]))
+      .map((item) => item[1].peerId);
+    callback({ [roomId]: peersId });
+  });
 
   req.on(
     'loadeddata',

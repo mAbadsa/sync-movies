@@ -9,16 +9,16 @@
 function connectPeerToPeer({ socket, data }) {
   if (peerObject) return;
   // Peer Constructor
-  // const myPeer = new Peer(undefined, {
-  //   host: '/',
-  //   port: '9000',
-  // });
-
   const myPeer = new Peer(undefined, {
-    host: 'peerjs-server.herokuapp.com',
-    secure: true,
-    port: 443,
+    host: '/',
+    port: '9000',
   });
+
+  // const myPeer = new Peer(undefined, {
+  //   host: 'peerjs-server.herokuapp.com',
+  //   secure: true,
+  //   port: 443,
+  // });
 
   peerObject = myPeer;
 
@@ -93,6 +93,7 @@ async function handleCallButtonClick({ socket, thisPeerId, myPeer }) {
 
   // getRoomPeers
   socket.emit('call-peers', { roomId: roomIdServer }, (req) => {
+    console.log({ roomIdServer });
     // req have all the peerId;
     req[roomIdServer].forEach(
       (peerId) =>
