@@ -24,7 +24,6 @@ const compressIcon = document.getElementById('compress-icon');
 const joinRoomDiv = document.getElementById('join-room-div');
 const roomManagementDiv = document.getElementById('room-management-div');
 const signal = document.getElementById('signal');
-const createRoom = document.getElementById('create-room');
 const joinRoom = document.getElementById('join-room');
 const globalNickname = { nickname: 'random user' };
 const nicknameForm = document.getElementById('nickname-form');
@@ -32,6 +31,11 @@ const audioSection = document.getElementById('audio-section');
 const callBtn = document.getElementById('call-btn');
 const audioSection1 = document.getElementById('audio-section-1');
 const inputRoomId = document.getElementById('input-room-id');
+
+const createRoom = document.getElementById('create-room');
+const createRoomIcon = document.getElementById('create-room-icon');
+const leaveRoomIcon = document.getElementById('leave-room-icon');
+
 const connectedPeopleList = document.getElementById('connected-people-list');
 
 if (localStorage.getItem('nickname')) {
@@ -53,17 +57,18 @@ window.addEventListener('load', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const roomId = urlParams.get('roomId');
   if (roomId) {
-    return connectFunction(roomId, { status: 'join-room' });
+    socketInstance = connectFunction(roomId, { status: 'join-room' });
+    return socketInstance;
   }
   return null;
 });
 
-createRoom.addEventListener('click', () => {
-  if (globalNickname.nickname === 'random user') {
-    return alert('please add a nickname :)');
-  }
-  roomManagementDiv.classList.add('hidden');
-});
+// createRoom.addEventListener('click', () => {
+//   if (globalNickname.nickname === 'random user') {
+//     return alert('please add a nickname :)');
+//   }
+//   roomManagementDiv.classList.add('hidden');
+// });
 
 joinRoom.addEventListener('click', () => {
   if (globalNickname.nickname === 'random user') {
@@ -113,15 +118,13 @@ let connectedUserCount = 0;
 let peerObject;
 let callerMediaElement;
 const callersMediaElement = {};
+let socketInstance;
 
 const peers = {};
 const connectFunction = (roomId, { status }) => {
   const socket = io.connect('/');
-  // const myPeer = new Peer(undefined, {
-  //   host: 'peerjs-server.herokuapp.com',
-  //   secure: true,
-  //   port: 443,
-  // });
+  createRoomIcon.classList.add('hidden');
+  leaveRoomIcon.classList.remove('hidden');
 
   if (status === 'create-room') {
     socket.emit('create-room', {
@@ -211,10 +214,17 @@ const connectFunction = (roomId, { status }) => {
     videoElement.currentTime = time;
   });
 
+  socket.on('socket-disconnect', ({ nickname, connectedUsers }) => {
+    notifyMe(
+      `${nickname} Leave Room. Connected People ${connectedUsers} `,
+      joinedSound,
+    );
+  });
+
   socket.on('roomId', (data) => {
     roomIdServer = data.roomId;
     notifyMe(
-      `Joined Room : ${data.roomId} - Connected People ${data.connectedUsers} `,
+      `${data.nickname} Joined Room. Connected People ${data.connectedUsers} `,
       joinedSound,
     );
 
@@ -285,6 +295,7 @@ const connectFunction = (roomId, { status }) => {
   socket.on('typing', (data) => {
     feedback.innerHTML = `<p><em>${data} is typing a message...</em></p>`;
   });
+  return socket;
 };
 
 roomForm.addEventListener('submit', (e) => {
@@ -299,7 +310,16 @@ createRoom.addEventListener('click', () => {
   }
   roomManagementDiv.classList.add('hidden');
 
-  return connectFunction(null, { status: 'create-room' });
+  if (!socketInstance) {
+    socketInstance = connectFunction(null, { status: 'create-room' });
+    createRoomIcon.classList.add('hidden');
+    leaveRoomIcon.classList.remove('hidden');
+    return socketInstance;
+  }
+  createRoomIcon.classList.remove('hidden');
+  leaveRoomIcon.classList.add('hidden');
+  socketInstance.disconnect();
+  socketInstance = null;
 });
 
 joinRoom.addEventListener('click', () => {

@@ -4,3 +4,4 @@
 2021-07-05T19:34:54.617Z [Socket Error] error: fetch is not defined
 2021-07-05T19:35:00.305Z [Socket Error] error: fetch is not defined
 2021-07-05T19:35:47.838Z [Socket Error] error: fetch is not a function
+2021-07-08T14:25:36.210Z [Socket Error] error: "disconnecting" is a reserved event name

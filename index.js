@@ -56,7 +56,12 @@ io.on('connection', (req) => {
       const roomId = [...req.rooms].find((item) => item !== req.id);
       req.leave(roomId);
       const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-      io.to(roomId).emit('roomId', { roomId, connectedUsers });
+      // io.to(roomId).emit('roomId', { roomId, connectedUsers });
+      io.to(roomId).emit('socket-disconnect', {
+        nickname: req.nickname,
+        connectedUsers,
+        roomId,
+      });
       io.to(roomId).emit('peer-disconnect', { peerId: req.peerId });
     }),
   );
@@ -82,6 +87,7 @@ io.on('connection', (req) => {
         loadedData,
         id: req.id,
         loadDataUsers,
+        nickname: req.nickname,
       });
     }),
   );
