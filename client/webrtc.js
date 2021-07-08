@@ -61,7 +61,7 @@ function connectPeerToPeer({ socket, data }) {
             parent: audioSection1,
             streamId: userStream.id,
           });
-          callersMediaElement[call.peer].muted = false;
+          callersMediaElement[call.peer].children[0].muted = false;
         }
       });
       call.on('close', () => callersMediaElement[call.peer].remove());
@@ -95,7 +95,7 @@ async function handleCallButtonClick({ socket, thisPeerId, myPeer }) {
 
   // getRoomPeers
   socket.emit('call-peers', { roomId: roomIdServer }, (req) => {
-    console.log({ roomIdServer });
+    console.log({ roomIdServer, req });
     // req have all the peerId;
     req[roomIdServer].forEach(
       (peerId) =>

@@ -459,10 +459,12 @@ function addMediaStream({ stream, parent, MediaType = 'video', streamId }) {
   controls.append(muteButton, videoButton);
   containerDiv.append(mediaElement, controls);
   parent.append(containerDiv);
+  console.log('containerDiv', containerDiv);
   return containerDiv;
 }
 
 function connectToPeerId(peerInstance, peerId, stream) {
+  console.log({ peerId, callersMediaElement });
   if (!callersMediaElement[peerId]) {
     const call = peerInstance.call(peerId, stream);
     call.on('stream', (userStream) => {
@@ -472,7 +474,7 @@ function connectToPeerId(peerInstance, peerId, stream) {
           parent: audioSection1,
           streamId: userStream.id,
         });
-        callersMediaElement[peerId].muted = false;
+        callersMediaElement[peerId].children[0].muted = false;
       }
     });
     call.on('close', () => callersMediaElement[peerId].remove());
