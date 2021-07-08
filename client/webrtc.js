@@ -8,13 +8,15 @@
 /* eslint-disable no-undef */
 function connectPeerToPeer({ socket, data }) {
   if (peerObject) return;
+  const peerIdRandom = uuid.v4();
+  console.log(peerIdRandom);
   // Peer Constructor
-  // const myPeer = new Peer(undefined, {
+  // const myPeer = new Peer(peerIdRandom, {
   //   host: '/',
   //   port: '9000',
   // });
 
-  const myPeer = new Peer(undefined, {
+  const myPeer = new Peer(peerIdRandom, {
     host: 'peerjs-server.herokuapp.com',
     secure: true,
     port: 443,
