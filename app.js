@@ -5,7 +5,7 @@ const app = express();
 
 app.use(express.static('client'));
 app.all('*', (req, res) => {
-  res.sendFile(join(__dirname, 'client', 'index.html'));
+  res.sendFile(join(__dirname, 'client/public/', 'index.html'));
 });
 
 // enabling access control origin
