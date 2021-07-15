@@ -44,6 +44,11 @@ const useStyles = createUseStyles({
   },
   roomControllerBox: {
     width: '70%',
+    display: 'flex',
+    alignContent: 'center',
+    flexWrap: 'nowrap',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   chatContainer: {
     width: '28%',

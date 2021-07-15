@@ -15,6 +15,7 @@ let socket;
 
 function App() {
   const [socketio, setSocketio] = useState(null);
+  const [isJoined, setIsJoined] = useState(false);
   // const { roomId } = useParams();
   console.log('App');
 
@@ -33,10 +34,14 @@ function App() {
       <Layout>
         <Switch>
           <Route exact path="/">
-            {socketio !== null && <Home socket={socketio} />}
+            {socketio !== null && (
+              <Home handleIsJoined={setIsJoined} socket={socketio} />
+            )}
           </Route>
           <Route exact path="/:roomId">
-            {socketio !== null && <Dashboard socket={socketio} />}
+            {socketio !== null && (
+              <Dashboard isJoined={isJoined} socket={socketio} />
+            )}
           </Route>
         </Switch>
         {/* <Provider store={store} /> */}

@@ -20,6 +20,8 @@ function Button({ text, handleClick, variant, size, disabled }) {
     variantClass = classes.primary;
   } else if (variant === 'success') {
     variantClass = classes.success;
+  } else if (variant === 'outline') {
+    variantClass = classes.outline;
   } else if (variant === 'danger') {
     variantClass = classes.danger;
   }

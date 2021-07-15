@@ -4,6 +4,7 @@ require("dotenv").config();
 const socket = require("socket.io");
 const logger = require("./logger");
 const terminate = require("./terminate");
+const shortId = require("shortid");
 
 const {
   env: { PORT },
@@ -35,6 +36,7 @@ process.on("SIGTERM", exitHandler(0, "SIGTERM"));
 process.on("SIGINT", exitHandler(0, "SIGINT"));
 
 const io = socket(server);
+let movieUrl;
 
 const wrapper = (socketInstance, fun) => (params) => {
   try {
@@ -67,12 +69,14 @@ io.on("connection", (req) => {
     })
   );
 
-  req.on("leave-room", ({ roomId }) => {
+  req.on("leave-room", ({ roomId, sid }) => {
+    // console.log({ sid });
     req.leave(roomId);
     const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
-    console.log({ connectedUsers });
-    io.to(roomId).emit("socket-disconnect", {
+    // console.log({ connectedUsers });
+    io.to(roomId).emit("leave-room", {
       connectedUsers,
+      sid: socket.id,
     });
   });
 
@@ -82,22 +86,23 @@ io.on("connection", (req) => {
       // check roomId - should be in rooms
 
       // if (!io.sockets.adapter.rooms.get(roomId)) return;
-      console.log("room is exists", io.sockets.adapter.rooms);
+      // console.log("room is exists", io.sockets.adapter.rooms.get(roomId));
+      // console.log("Sokcet", [...io.sockets.sockets]);
       if (!io.sockets.adapter.rooms.get(roomId)) {
-        req.emit('invalid-room', {});
-      };
-      console.log({ rooms: io.sockets.adapter.rooms.get(roomId) });
+        req.emit("invalid-room", {});
+      }
+      // console.log({ rooms: io.sockets.adapter.rooms.get(roomId) });
       req.join(roomId);
       const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
       req.loadedData = loadedData;
       req.nickname = nickname;
-      const loadDataUsers = [...io.sockets.sockets].filter(
-        (item) => {
-          // console.log(item);
-          io.sockets.adapter.rooms.get(roomId)?.has(item[0]) &&
-          item[1].loadedData
-        }
-      ).length;
+      const loadDataUsers = [...io.sockets.sockets].filter((item) => {
+        // console.log(item);
+        io.sockets.adapter.rooms.get(roomId)?.has(item[0]) &&
+          item[1].loadedData;
+      }).length;
+      console.log({movieUrl});
+      io.to(roomId).emit("movieUrl", { url: movieUrl });
       io.to(roomId).emit("roomId", {
         roomId,
         connectedUsers,
@@ -105,8 +110,9 @@ io.on("connection", (req) => {
         id: req.id,
         loadDataUsers,
         nickname: req.nickname,
+        movieUrl,
       });
-      console.log("joined-room", { connectedUsers });
+      // console.log("joined-room", { connectedUsers });
     })
   );
 
@@ -117,14 +123,14 @@ io.on("connection", (req) => {
       roomId,
       connectedUsers,
     });
-    console.log("number-users", {connectedUsers});
+    // console.log("number-users", { connectedUsers });
   });
 
   req.on(
     "create-room",
-    wrapper(io, ({ loadedData, nickname, newRoomId: roomId }) => {
+    wrapper(io, ({ loadedData, nickname }) => {
       console.log("Backend-end");
-      // const roomId = `${req.id}_${Math.random().toFixed(3)}`;
+      const roomId = shortId.generate();
       req.join(roomId);
       const connectedUsers = io.sockets.adapter.rooms?.get(roomId)?.size || 1;
       req.loadedData = loadedData;
@@ -147,8 +153,9 @@ io.on("connection", (req) => {
         loadedData,
         id: req.id,
         loadDataUsers,
+        nickname: req.nickname,
       });
-      console.log("create-room", { connectedUsers });
+      // console.log("create-room", { connectedUsers });
     })
   );
 
@@ -202,12 +209,14 @@ io.on("connection", (req) => {
 
   req.on(
     "movieUrl",
-    wrapper(io, (data) => {
+    wrapper(io, ({ roomId, url }) => {
       io.sockets.sockets.forEach((socketItem) => {
         socketItem.loadedData = false;
       });
       // check if data.url is valid
-      req.to(data.roomId).emit("movieUrl", data.url);
+      console.log({ url });
+      movieUrl = url;
+      io.to(roomId).emit("movieUrl", { url });
     })
   );
 

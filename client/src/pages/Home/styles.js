@@ -8,17 +8,31 @@ const useStyles = createUseStyles({
     maxWidth: '1140px',
     margin: '0 auto',
   },
-  nav: {
+  mainContent: {
     display: 'flex',
+    flexDirection: 'column',
     justifyContent: 'space-between',
     padding: '1rem',
+    height: '100vh',
   },
   buttonBox: {
     display: 'flex',
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'flex-satrt',
+    alignItems: 'center',
     padding: '1rem',
-    width: '45%',
+    // width: '45%',
     transition: 'all 0.25s',
+  },
+  joinRoom: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    padding: '1rem',
+  },
+  joinRoomInputContainer: {
+    width: '200px',
   },
   title: {
     padding: '2rem',
@@ -29,19 +43,59 @@ const useStyles = createUseStyles({
       fontWeight: 'lighter',
     },
   },
-  mainContent: {
-    display: 'flex',
-    justifyContent: 'center',
+
+  editUsernameContainer: {
+    position: 'relative',
   },
-  '@media (max-width: 425px)': {
+  showUsername: {
+    color: ({ theme }) => theme.secondaryColor,
+    textAlign: 'left',
+    position: 'relative',
+  },
+  editButton: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    border: 'none',
+    outline: 'none',
+    top: '0',
+    right: '0',
+    '& i': {
+      color: ({ theme }) => theme.secondaryColor,
+      fontSize: '20px',
+      cursor: 'pointer',
+      transition: 'all 0.25s',
+      '&:hover': {
+        color: ({ theme }) => theme.buttonPrimaryColor,
+        transition: 'all 0.25s',
+      },
+    },
+  },
+  // mainContent: {
+  //   display: 'flex',
+  //   justifyContent: 'center',
+  // },
+  '@media (max-width: 535px)': {
     buttonBox: {
-      width: '100%',
+      // width: '100%',
+      // flexWrap: 'wrap',
+      alignItems: 'self-start',
       flexDirection: 'column',
+      transition: 'all 0.25s',
+    },
+    joinRoom: {
+      padding: '0',
+    },
+    joinRoomInputContainer: {
+      width: '100%',
+    },
+    Button: {
+      width: 'auto',
     },
   },
   '@media (max-width: 768px)': {
     buttonBox: {
       width: '100%',
+      // flexDirection: 'column',
     },
   },
 });

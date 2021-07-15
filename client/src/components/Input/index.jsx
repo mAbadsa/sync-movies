@@ -4,7 +4,13 @@ import { useTheme } from 'react-jss';
 
 import useStyles from './style';
 
-function Input({ placeholder, value, handleChange, withButton }) {
+function Input({
+  placeholder,
+  value,
+  handleChange,
+  htmlElement,
+  handleSaveName,
+}) {
   const theme = useTheme();
   const classes = useStyles({ theme });
   const inputRef = useRef(null);
@@ -16,6 +22,32 @@ function Input({ placeholder, value, handleChange, withButton }) {
     e.target.focus();
   };
 
+  let buttonElement;
+
+  if (htmlElement === 'edit') {
+    buttonElement = (
+      <button
+        className={classes.editButton}
+        type="button"
+        onClick={handleSaveName}
+      >
+        <i className="fas fa-check" />
+      </button>
+    );
+  } else if (htmlElement === 'copy') {
+    buttonElement = (
+      <button
+        className={classes.copyButton}
+        type="button"
+        onClick={handleIdCopy}
+      >
+        copy
+      </button>
+    );
+  } else {
+    buttonElement = '';
+  }
+
   return (
     <div className={classes.Input}>
       <input
@@ -25,15 +57,7 @@ function Input({ placeholder, value, handleChange, withButton }) {
         onChange={handleChange}
         ref={inputRef}
       />
-      {withButton && (
-        <button
-          className={classes.copyButton}
-          type="button"
-          onClick={handleIdCopy}
-        >
-          copy
-        </button>
-      )}
+      {buttonElement}
     </div>
   );
 }
@@ -41,14 +65,16 @@ function Input({ placeholder, value, handleChange, withButton }) {
 Input.defaultProps = {
   placeholder: 'Enter you nickname.',
   value: '',
-  withButton: false,
+  htmlElement: '',
+  handleSaveName: () => {},
 };
 
 Input.propTypes = {
   placeholder: PropTypes.string,
   value: PropTypes.string,
   handleChange: PropTypes.func.isRequired,
-  withButton: PropTypes.bool,
+  htmlElement: PropTypes.string,
+  handleSaveName: PropTypes.func,
 };
 
 export default Input;

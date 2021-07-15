@@ -2,16 +2,16 @@ import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
   Button: {
-    width: '100%',
+    // width: '100%',
     // padding: '10px',
     fontSize: '14px',
     fontWeight: 'lighter',
     '& button': {
-      width: '100%',
+      // width: '100%',
+      marginBottom: '10px',
       height: '35px',
       padding: '5px',
       color: 'white',
-      border: 'none',
       fontSize: 'inherit',
       borderRadius: '3px',
       cursor: 'pointer',
@@ -19,22 +19,38 @@ const useStyles = createUseStyles({
     },
   },
   primary: {
+    border: 'none',
     backgroundColor: ({ theme }) => theme.buttonPrimaryColor,
-    '&hover': {
+    '&:hover': {
       backgroundColor: '#25a6dd',
       transition: 'all 0.2s',
     },
   },
+  outline: {
+    backgroundColor: 'transparent',
+    border: '2px solid #8f8f8f',
+    color: '#8f8f8f',
+    marginLeft: '0.7rem',
+    transition: 'all 0.2s',
+    '&:hover': {
+      backgroundColor: '#0C99D6',
+      border: '2px solid #0C99D6',
+      color: '#fff',
+      transition: 'all 0.2s',
+    },
+  },
   danger: {
+    border: 'none',
     backgroundColor: ({ theme }) => theme.dangerColor,
-    '&hover': {
+    '&:hover': {
       backgroundColor: '#25a6dd',
       transition: 'all 0.2s',
     },
   },
   success: {
+    border: 'none',
     backgroundColor: ({ theme }) => theme.successColor,
-    '&hover': {
+    '&:hover': {
       backgroundColor: '#31F846',
       transition: 'all 0.2s',
     },
@@ -43,9 +59,21 @@ const useStyles = createUseStyles({
     cursor: 'not-allowed !important',
     backgroundColor: '#a5a5a5 !important',
   },
+  // '@media (max-width: 535px)': {
+  //   Button: {
+
+  //   },
+  // },
   '@media (max-width: 425px)': {
     Button: {
-      width: '100%',
+      // width: '100px',
+      // marginLeft: '10px',
+      '& button': {
+        marginLeft: '0px',
+      },
+    },
+    outline: {
+      width: '100px',
     },
     primary: {
       width: '100%',
@@ -56,7 +84,7 @@ const useStyles = createUseStyles({
   },
   '@media (max-width: 768px)': {
     Button: {
-      width: '100%',
+      // width: '100%',
     },
   },
 });

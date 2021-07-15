@@ -12,10 +12,11 @@ import Video from '../../components/video';
 import Button from '../../components/Button';
 import RoomController from '../../components/RoomController';
 import ChatBox from '../../components/ChatBox';
+import AddUrl from '../../components/AddUrl';
 
 import useStyles from './styles';
 
-function Dashboard({ socket }) {
+function Dashboard({ socket, isJoined }) {
   const theme = useTheme();
   const classes = useStyles({ theme });
 
@@ -24,7 +25,9 @@ function Dashboard({ socket }) {
 
   const [nOfUsers, setNoOfUsers] = useState(0);
   const [shareLink, setShareLink] = useState('');
-  // const [refresh, setRefresh] = useState(false);
+  const [movieUrl, setMovieUrl] = useState('');
+  const [isUrlValidate, setIsUrlValidate] = useState(false);
+  const [refresh, setRefresh] = useState(false);
   const shareLinkRef = useRef(null);
 
   const handleIdCopy = (e) => {
@@ -48,15 +51,32 @@ function Dashboard({ socket }) {
   //   return e.returnValue;
   // });
 
+  // const sid = socket.id;
+
   useEffect(() => {
-    socket.emit('join-room', {
-      roomId,
-    });
+    console.log('Dashboard');
+    if (!isJoined) {
+      console.log({ isJoined });
+      console.log({ movieUrl });
+      if (movieUrl) {
+        socket.emit('movieUrl', { url: movieUrl, roomId });
+      }
+      socket.emit('join-room', {
+        roomId,
+      });
+    }
     socket.emit('number-user-connected', { roomId });
   }, []);
 
   useEffect(() => {
     handleChange();
+    console.log('Effect');
+    socket.on('movieUrl', ({ url }) => {
+      console.log({ url });
+      console.log({ movieUrl });
+      setMovieUrl(url);
+      setIsUrlValidate(true);
+    });
     socket.on('number-user-connected', ({ connectedUsers }) => {
       console.log({ connectedUsers });
       // if (localStorage.getItem('shareVideo')) {
@@ -77,23 +97,42 @@ function Dashboard({ socket }) {
     socket.on('roomId', (data) => {
       // history.push(`/${roomId}`);
       console.log({ data });
+      setMovieUrl(data.movieUrl);
       setNoOfUsers(data.connectedUsers);
+      setIsUrlValidate(false);
+      console.log({ isUrlValidate });
     });
-    socket.on('socket-disconnect', ({ connectedUsers }) => {
+    socket.on('leave-room', ({ connectedUsers }) => {
       // window.localStorage.removeItem('shareVideo');
       console.log({ connectedUsers });
+      // if (sid === _sid) {
+      //   history.push('/');
+      // }
       setNoOfUsers(connectedUsers);
-      // history.push('/');
     });
     socket.on('connect_error', (err) => {
-      console.log(`connect_error due to ${err.message}`);
+      console.log(`connect_error due to ${err}`);
     });
-  }, []);
+  }, [refresh]);
 
   const handleRoomLeave = () => {
     console.log('LEAVE..');
-    socket.emit('leave-room', { roomId });
+    socket.emit('leave-room', { roomId, sid: socket.id });
+    history.push('/');
     // setRefresh(!refresh);
+  };
+
+  const handleVideoUrl = (e) => {
+    console.log(movieUrl);
+    setMovieUrl(e.target.value);
+  };
+
+  const sendUrlMovie = (value) => {
+    console.log({ value });
+    socket.emit('movieUrl', { url: value, roomId });
+    // setIsUrlValidate(false);
+    setRefresh(!refresh);
+    console.log({ refresh });
   };
 
   return (
@@ -138,7 +177,15 @@ function Dashboard({ socket }) {
       </header>
       <div className={classes.mainContent}>
         <div className={classes.roomControllerBox}>
-          <Video />
+          {!isUrlValidate ? (
+            <AddUrl
+              handleChange={handleVideoUrl}
+              value={movieUrl}
+              sendUrlMovie={sendUrlMovie}
+            />
+          ) : (
+            <Video url={movieUrl} />
+          )}
           <RoomController />
         </div>
         <div className={classes.chatContainer}>
@@ -151,6 +198,7 @@ function Dashboard({ socket }) {
 
 Dashboard.propTypes = {
   socket: PropTypes.objectOf.isRequired,
+  isJoined: PropTypes.bool.isRequired,
 };
 
 export default Dashboard;

@@ -2,12 +2,13 @@ import { createUseStyles } from 'react-jss';
 
 const useStyles = createUseStyles({
   Input: {
-    width: '100%',
-    padding: '10px',
+    // width: '100%',
+    // padding: '10px',
     position: 'relative',
     '& input': {
       position: 'relative',
       width: '100%',
+      marginBottom: '10px',
       height: '35px',
       border: 'none',
       background: 'rgba(255,255,255,0.05)',
@@ -45,6 +46,24 @@ const useStyles = createUseStyles({
       color: '#2196f3',
       backgroundColor: '#2196f331',
       transition: 'all 0.35s',
+    },
+  },
+  editButton: {
+    position: 'absolute',
+    backgroundColor: 'transparent',
+    border: 'none',
+    outline: 'none',
+    top: '6px',
+    right: '3px',
+    '& i': {
+      color: ({ theme }) => theme.secondaryColor,
+      fontSize: '20px',
+      cursor: 'pointer',
+      transition: 'all 0.25s',
+      '&:hover': {
+        color: ({ theme }) => theme.buttonPrimaryColor,
+        transition: 'all 0.25s',
+      },
     },
   },
 });
