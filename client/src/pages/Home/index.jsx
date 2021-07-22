@@ -52,29 +52,37 @@ function Home({ socket, handleIsJoined }) {
     }
   }
 
-  useEffect(() => {
-    if (JSON.parse(window.localStorage.getItem('share-movies'))) {
-      const { nickname } = JSON.parse(
-        window.localStorage.getItem('share-movies')
-      );
-      setUsername(nickname || '');
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (JSON.parse(window.localStorage.getItem('share-movies'))) {
+  //     const { nickname } = JSON.parse(
+  //       window.localStorage.getItem('share-movies')
+  //     );
+  //     setUsername(nickname || '');
+  //   }
+  // }, []);
 
   useEffect(() => {
-    socket.on('roomId', ({ nickname, connectedUsers, roomId: _roomId }) => {
+    socket.on('roomId', ({ connectedUsers, roomId: _roomId }) => {
       // setUsername(_username);
       setSuccessMsg('Success...');
-      console.log({ nickname });
       window.localStorage.setItem(
         'share-movies',
         JSON.stringify({
           role: 'user',
           connectedUsers,
-          nickname,
         })
       );
       history.push(`/${_roomId}`);
+    });
+    socket.on('is-joined', ({ nickname }) => {
+      // setUsername(_username);
+      setSuccessMsg('Success...');
+      window.localStorage.setItem(
+        'share-movies',
+        JSON.stringify({
+          nickname,
+        })
+      );
     });
     socket.on(
       'create-room',
@@ -146,9 +154,11 @@ function Home({ socket, handleIsJoined }) {
   };
 
   const handleJoinRoom = () => {
+    console.log(username);
     socket.emit('join-room', {
       roomId,
       nickname: username,
+      id: socket.id,
     });
     handleIsJoined(true);
   };

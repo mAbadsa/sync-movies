@@ -82,7 +82,7 @@ io.on("connection", (req) => {
 
   req.on(
     "join-room",
-    wrapper(io, ({ roomId, loadedData, nickname }) => {
+    wrapper(io, ({ roomId, loadedData, nickname, id }) => {
       // check roomId - should be in rooms
 
       // if (!io.sockets.adapter.rooms.get(roomId)) return;
@@ -101,7 +101,7 @@ io.on("connection", (req) => {
         io.sockets.adapter.rooms.get(roomId)?.has(item[0]) &&
           item[1].loadedData;
       }).length;
-      console.log({movieUrl});
+      console.log({ movieUrl });
       io.to(roomId).emit("movieUrl", { url: movieUrl });
       io.to(roomId).emit("roomId", {
         roomId,
@@ -112,6 +112,7 @@ io.on("connection", (req) => {
         nickname: req.nickname,
         movieUrl,
       });
+      req.broadcast.to(id).emit("is-joined", { nickname: req.nickname });
       // console.log("joined-room", { connectedUsers });
     })
   );

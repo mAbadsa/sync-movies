@@ -53,6 +53,14 @@ function Dashboard({ socket, isJoined }) {
 
   // const sid = socket.id;
 
+  const sendUrlMovie = (value) => {
+    console.log({ value });
+    socket.emit('movieUrl', { url: value, roomId });
+    // setIsUrlValidate(false);
+    setRefresh(!refresh);
+    console.log({ refresh });
+  };
+
   useEffect(() => {
     console.log('Dashboard');
     if (!isJoined) {
@@ -110,6 +118,9 @@ function Dashboard({ socket, isJoined }) {
       // }
       setNoOfUsers(connectedUsers);
     });
+    socket.on('is-joined', () => {
+      sendUrlMovie(movieUrl);
+    });
     socket.on('connect_error', (err) => {
       console.log(`connect_error due to ${err}`);
     });
@@ -125,14 +136,6 @@ function Dashboard({ socket, isJoined }) {
   const handleVideoUrl = (e) => {
     console.log(movieUrl);
     setMovieUrl(e.target.value);
-  };
-
-  const sendUrlMovie = (value) => {
-    console.log({ value });
-    socket.emit('movieUrl', { url: value, roomId });
-    // setIsUrlValidate(false);
-    setRefresh(!refresh);
-    console.log({ refresh });
   };
 
   return (
