@@ -4,14 +4,19 @@
   "description": "testUrl = http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
   "main": "index.js",
   "scripts": {
-    "dev": "nodemon index.js",
-    "start": "node index.js"
+    "start": "cross-env NODE_ENV=production node server",
+    "dev": "cross-env NODE_ENV=development nodemon server",
+    "client": "cd client && npm start",
+    "project-setup": "npm install && cd client && npm install",
+    "heroku-postbuild": "cd client && npm install && npm run build",
+    "run-both":"npm run dev && npm run client"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@joeattardi/emoji-button": "^4.6.0",
+    "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "shortid": "^2.2.16",
