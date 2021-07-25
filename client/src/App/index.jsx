@@ -17,8 +17,6 @@ function App() {
   const [socketio, setSocketio] = useState(null);
   const [isJoined, setIsJoined] = useState(false);
   // const { roomId } = useParams();
-  console.log('App');
-
   useEffect(() => {
     socket = io.connect('/', { rejectUnauthorized: false });
     setSocketio(socket);
@@ -26,8 +24,6 @@ function App() {
     //   console.log(socket.id);
     // });
   }, []);
-
-  console.log(socketio);
 
   return (
     <div className="App">

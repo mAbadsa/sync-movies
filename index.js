@@ -36,7 +36,7 @@ process.on("SIGTERM", exitHandler(0, "SIGTERM"));
 process.on("SIGINT", exitHandler(0, "SIGINT"));
 
 const io = socket(server);
-let movieUrl;
+let movieUrl = '';
 
 const wrapper = (socketInstance, fun) => (params) => {
   try {
@@ -110,8 +110,9 @@ io.on("connection", (req) => {
         id: req.id,
         loadDataUsers,
         nickname: req.nickname,
-        movieUrl,
+        movieUrl: movieUrl,
       });
+      console.log({ id });
       req.broadcast.to(id).emit("is-joined", { nickname: req.nickname });
       // console.log("joined-room", { connectedUsers });
     })

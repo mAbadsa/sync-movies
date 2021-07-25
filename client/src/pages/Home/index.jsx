@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { useHistory } from 'react-router-dom';
+import { useHistory, useLocation } from 'react-router-dom';
 // import { useDispatch } from 'react-redux';
 // import { io } from 'socket.io-client';
 
@@ -22,96 +22,108 @@ import useStyles from './styles';
 // const ENDPOINT = '/';
 
 function Home({ socket, handleIsJoined }) {
-  console.log('HOME');
   const history = useHistory();
+  const location = useLocation();
   // const dispatch = useDispatch();
   const [username, setUsername] = useState('');
   const [openJoinModal, setOpenJoinModal] = useState(false);
+  const [openUseNameModal, setOpenUseNameModal] = useState(false);
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [roomId, setRoomId] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [isEdit, setIsEdit] = useState(false);
   const theme = useTheme();
   const classes = useStyles({ theme });
-  console.log(username);
 
   let oldNickName;
   if (JSON.parse(window.localStorage.getItem('share-movies'))) {
     const localStorageObj = JSON.parse(
       window.localStorage.getItem('share-movies')
     );
-    const isHas = Object.prototype.hasOwnProperty.call(
+    const hasNickname = Object.prototype.hasOwnProperty.call(
       localStorageObj,
       'nickname'
     );
-    if (isHas) {
+    if (hasNickname) {
       oldNickName = JSON.parse(
         window.localStorage.getItem('share-movies')
-      ).nickname;
-      console.log({ oldNickName });
+      )?.nickname;
     }
   }
 
-  // useEffect(() => {
-  //   if (JSON.parse(window.localStorage.getItem('share-movies'))) {
-  //     const { nickname } = JSON.parse(
-  //       window.localStorage.getItem('share-movies')
-  //     );
-  //     setUsername(nickname || '');
-  //   }
-  // }, []);
+  useEffect(() => {
+    if (JSON.parse(window.localStorage.getItem('share-movies'))) {
+      const { nickname } = JSON.parse(
+        window.localStorage.getItem('share-movies')
+      );
+      setUsername(nickname || '');
+    }
+  }, []);
 
   useEffect(() => {
-    socket.on('roomId', ({ connectedUsers, roomId: _roomId }) => {
-      // setUsername(_username);
-      setSuccessMsg('Success...');
-      window.localStorage.setItem(
-        'share-movies',
-        JSON.stringify({
-          role: 'user',
-          connectedUsers,
-        })
-      );
-      history.push(`/${_roomId}`);
-    });
-    socket.on('is-joined', ({ nickname }) => {
-      // setUsername(_username);
-      setSuccessMsg('Success...');
-      window.localStorage.setItem(
-        'share-movies',
-        JSON.stringify({
-          nickname,
-        })
-      );
-    });
-    socket.on(
-      'create-room',
-      ({
-        roomId: _newRoomId,
-        connectedUsers,
-        id,
-        nickname,
-        // loadDataUsers,
-      }) => {
+    if (location.state?.message.length > 0) {
+      setOpenUseNameModal(true);
+    }
+    if (oldNickName) {
+      socket.on('roomId', ({ roomId: _roomId }) => {
+        // setUsername(_username);
+        setSuccessMsg('Success...');
+        const oldData =
+          JSON.parse(window.localStorage.getItem('share-movies')) || {};
+        window.localStorage.setItem(
+          'share-movies',
+          JSON.stringify({
+            ...oldData,
+            role: 'user',
+          })
+        );
+        history.push(`/${_roomId}`);
+      });
+      socket.on('is-joined', ({ nickname }) => {
+        // setUsername(_username);
         setSuccessMsg('Success...');
         window.localStorage.setItem(
           'share-movies',
           JSON.stringify({
             nickname,
-            userId: id,
-            role: 'master',
           })
         );
-        console.log({
-          newRoomId: _newRoomId,
+      });
+      socket.on(
+        'create-room',
+        ({
+          roomId: _newRoomId,
           id,
-          connectedUsers,
-          username: nickname,
-        });
-        history.push(`/${_newRoomId}`);
-      }
-    );
+          nickname,
+          // loadDataUsers,
+        }) => {
+          setSuccessMsg('Success...');
+          window.localStorage.setItem(
+            'share-movies',
+            JSON.stringify({
+              nickname,
+              userId: id,
+              role: 'master',
+            })
+          );
+          history.push(`/${_newRoomId}`);
+        }
+      );
+    }
   }, []);
+
+  const handleSaveName = () => {
+    const oldData =
+      JSON.parse(window.localStorage.getItem('share-movies')) || {};
+    window.localStorage.setItem(
+      'share-movies',
+      JSON.stringify({
+        ...oldData,
+        nickname: username,
+      })
+    );
+    setIsEdit(false);
+  };
 
   const handleOpenJoinModal = () => {
     setOpenJoinModal(true);
@@ -130,6 +142,7 @@ function Home({ socket, handleIsJoined }) {
   };
 
   const handleCreateRoom = () => {
+    handleSaveName();
     socket.emit('create-room', {
       nickname: username,
     });
@@ -140,21 +153,7 @@ function Home({ socket, handleIsJoined }) {
     setIsEdit(true);
   };
 
-  const handleSaveName = () => {
-    const oldData =
-      JSON.parse(window.localStorage.getItem('share-movies')) || {};
-    window.localStorage.setItem(
-      'share-movies',
-      JSON.stringify({
-        ...oldData,
-        nickname: username,
-      })
-    );
-    setIsEdit(false);
-  };
-
   const handleJoinRoom = () => {
-    console.log(username);
     socket.emit('join-room', {
       roomId,
       nickname: username,
@@ -163,9 +162,41 @@ function Home({ socket, handleIsJoined }) {
     handleIsJoined(true);
   };
 
+  const handleAddUsername = () => {
+    setUsername(username);
+    if (username.length > 3) {
+      setOpenUseNameModal(false);
+    }
+    handleSaveName();
+    history.push(`/${location.state.roomId}`);
+  };
+
   return (
     <div className={classes.Home}>
       {successMsg.length > 0 && <Alert type="success">{successMsg}</Alert>}
+      {location.state?.message.length > 0 && (
+        <Alert type="error">{location.state?.message}</Alert>
+      )}
+      <Modal
+        open={openUseNameModal}
+        closeModel={() => setOpenUseNameModal(false)}
+      >
+        <CreateRoomBox titleText="Join The Room">
+          <Input
+            placeholder="Enter your nickname..."
+            value={username}
+            handleChange={handleNickname}
+            handleSaveName={handleSaveName}
+          />
+        </CreateRoomBox>
+        <Button
+          text="Add Nickname"
+          variant="primary"
+          size="large"
+          handleClick={handleAddUsername}
+          disabled={username.length < 4}
+        />
+      </Modal>
       <Modal open={openJoinModal} closeModel={() => setOpenJoinModal(false)}>
         <CreateRoomBox titleText="Join The Room">
           {!oldNickName ? (
@@ -243,38 +274,6 @@ function Home({ socket, handleIsJoined }) {
               )}
             </>
           )}
-          {/* {isEdit ? (
-            <Input
-              placeholder="Enter your nickname..."
-              value={username}
-              handleChange={handleNickname}
-              handleSaveName={handleSaveName}
-              htmlElement="edit"
-            />
-          ) : (
-            <div className={classes.editUsernameContainer}>
-              <p className={classes.showUsername}>{username}</p>
-              <button
-                className={classes.editButton}
-                type="button"
-                onClick={handleEditState}
-              >
-                <i className="fas fa-edit" />
-              </button>
-            </div>
-          )} */}
-          {/* {isEdit && (
-            <div className={classes.editUsernameContainer}>
-              <p className={classes.showUsername}>{username}</p>
-              <button
-                className={classes.editButton}
-                type="button"
-                onClick={handleEditState}
-              >
-                <i className="fas fa-edit" />
-              </button>
-            </div>
-          )} */}
           <Button
             variant="success"
             size="large"
@@ -317,7 +316,8 @@ function Home({ socket, handleIsJoined }) {
 }
 
 Home.propTypes = {
-  socket: PropTypes.objectOf.isRequired,
+  // eslint-disable-next-line react/forbid-prop-types
+  socket: PropTypes.object.isRequired,
   handleIsJoined: PropTypes.func.isRequired,
 };
 

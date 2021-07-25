@@ -30,6 +30,27 @@ function Dashboard({ socket, isJoined }) {
   const [refresh, setRefresh] = useState(false);
   const shareLinkRef = useRef(null);
 
+  if (JSON.parse(window.localStorage.getItem('share-movies'))) {
+    const localStorageObj = JSON.parse(
+      window.localStorage.getItem('share-movies')
+    );
+    const hasNickname = Object.prototype.hasOwnProperty.call(
+      localStorageObj,
+      'nickname'
+    );
+    if (!hasNickname) {
+      history.push({
+        pathname: '/',
+        state: { message: 'Add your nickname!', roomId },
+      });
+    }
+  } else {
+    history.push({
+      pathname: '/',
+      state: { message: 'Add your nickname!', roomId },
+    });
+  }
+
   const handleIdCopy = (e) => {
     shareLinkRef.current.select();
     shareLinkRef.current.setSelectionRange(0, 99999);
@@ -54,23 +75,21 @@ function Dashboard({ socket, isJoined }) {
   // const sid = socket.id;
 
   const sendUrlMovie = (value) => {
-    console.log({ value });
-    socket.emit('movieUrl', { url: value, roomId });
+    if (movieUrl.length >= 20) {
+      socket.emit('movieUrl', { url: value, roomId });
+    }
     // setIsUrlValidate(false);
     setRefresh(!refresh);
-    console.log({ refresh });
   };
 
   useEffect(() => {
-    console.log('Dashboard');
     if (!isJoined) {
-      console.log({ isJoined });
-      console.log({ movieUrl });
-      if (movieUrl) {
+      if (movieUrl.length >= 20) {
         socket.emit('movieUrl', { url: movieUrl, roomId });
       }
       socket.emit('join-room', {
         roomId,
+        id: socket.id,
       });
     }
     socket.emit('number-user-connected', { roomId });
@@ -78,15 +97,11 @@ function Dashboard({ socket, isJoined }) {
 
   useEffect(() => {
     handleChange();
-    console.log('Effect');
     socket.on('movieUrl', ({ url }) => {
-      console.log({ url });
-      console.log({ movieUrl });
       setMovieUrl(url);
       setIsUrlValidate(true);
     });
     socket.on('number-user-connected', ({ connectedUsers }) => {
-      console.log({ connectedUsers });
       // if (localStorage.getItem('shareVideo')) {
       //   const shareVideo = JSON.parse(
       //     window.localStorage.getItem('shareVideo')
@@ -103,16 +118,15 @@ function Dashboard({ socket, isJoined }) {
       history.push('/');
     });
     socket.on('roomId', (data) => {
-      // history.push(`/${roomId}`);
-      console.log({ data });
       setMovieUrl(data.movieUrl);
       setNoOfUsers(data.connectedUsers);
+      if (data?.movieUrl.length > 20) {
+        setIsUrlValidate(true);
+      }
       setIsUrlValidate(false);
-      console.log({ isUrlValidate });
     });
     socket.on('leave-room', ({ connectedUsers }) => {
       // window.localStorage.removeItem('shareVideo');
-      console.log({ connectedUsers });
       // if (sid === _sid) {
       //   history.push('/');
       // }
@@ -127,15 +141,17 @@ function Dashboard({ socket, isJoined }) {
   }, [refresh]);
 
   const handleRoomLeave = () => {
-    console.log('LEAVE..');
     socket.emit('leave-room', { roomId, sid: socket.id });
     history.push('/');
     // setRefresh(!refresh);
   };
 
   const handleVideoUrl = (e) => {
-    console.log(movieUrl);
+    setIsUrlValidate(false);
     setMovieUrl(e.target.value);
+    if (movieUrl.length >= 20) {
+      setIsUrlValidate(true);
+    }
   };
 
   return (
@@ -200,7 +216,8 @@ function Dashboard({ socket, isJoined }) {
 }
 
 Dashboard.propTypes = {
-  socket: PropTypes.objectOf.isRequired,
+  // eslint-disable-next-line react/forbid-prop-types
+  socket: PropTypes.object.isRequired,
   isJoined: PropTypes.bool.isRequired,
 };
 
