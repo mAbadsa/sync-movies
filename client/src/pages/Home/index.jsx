@@ -98,6 +98,7 @@ function Home({ socket, handleIsJoined }) {
           // loadDataUsers,
         }) => {
           setSuccessMsg('Success...');
+          console.log('create-app');
           window.localStorage.setItem(
             'share-movies',
             JSON.stringify({
